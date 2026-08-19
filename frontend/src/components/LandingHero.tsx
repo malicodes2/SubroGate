@@ -1,15 +1,13 @@
 import React from 'react';
-import { Plus, Play, Sparkles, FileText, Activity, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Plus, Sparkles, FileText, Activity, ShieldCheck, ArrowRight } from 'lucide-react';
 
 interface LandingHeroProps {
   onStartNew: () => void;
-  onLoadDemo?: () => void;
   isLoading?: boolean;
 }
 
 export const LandingHero: React.FC<LandingHeroProps> = ({
   onStartNew,
-  onLoadDemo,
   isLoading = false
 }) => {
   return (
@@ -33,7 +31,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           </p>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Button */}
         <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
           <button
             onClick={onStartNew}
@@ -44,17 +42,6 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <span>Start New Investigation</span>
             <ArrowRight className="w-4 h-4 ml-1 opacity-80" />
           </button>
-
-          {onLoadDemo && (
-            <button
-              onClick={onLoadDemo}
-              disabled={isLoading}
-              className="btn-secondary w-full sm:w-auto py-2.5 px-5 text-sm"
-            >
-              <Play className="w-4 h-4 text-cyan-600" />
-              <span>Load Rehearsal Case</span>
-            </button>
-          )}
         </div>
 
         <p className="text-xs text-slate-500 pt-1">

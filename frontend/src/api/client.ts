@@ -31,10 +31,17 @@ class ApiClient {
     if (!response.ok) {
       let errorMsg = `HTTP ${response.status} Error`;
       try {
-        const errorData = await response.json();
-        errorMsg = errorData.detail || errorData.message || errorMsg;
-      } catch (e) {
-        errorMsg = await response.text() || errorMsg;
+        const rawText = await response.text();
+        try {
+          const errorData = JSON.parse(rawText);
+          errorMsg = errorData.detail || errorData.message || errorMsg;
+        } catch {
+          if (rawText && rawText.trim()) {
+            errorMsg = rawText.length > 200 ? `${rawText.slice(0, 200)}...` : rawText;
+          }
+        }
+      } catch {
+        // stream already consumed or network fault
       }
       throw new Error(errorMsg);
     }
@@ -92,10 +99,17 @@ class ApiClient {
     if (!response.ok) {
       let errorMsg = `HTTP ${response.status} Error`;
       try {
-        const errorData = await response.json();
-        errorMsg = errorData.detail || errorData.message || errorMsg;
-      } catch (e) {
-        errorMsg = await response.text() || errorMsg;
+        const rawText = await response.text();
+        try {
+          const errorData = JSON.parse(rawText);
+          errorMsg = errorData.detail || errorData.message || errorMsg;
+        } catch {
+          if (rawText && rawText.trim()) {
+            errorMsg = rawText.length > 200 ? `${rawText.slice(0, 200)}...` : rawText;
+          }
+        }
+      } catch {
+        // stream already consumed or network fault
       }
       throw new Error(errorMsg);
     }

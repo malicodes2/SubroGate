@@ -5,16 +5,14 @@ import {
   FileText, 
   Activity, 
   FileCheck, 
-  AlertCircle, 
   CheckCircle2, 
   ArrowRight, 
   ArrowLeft, 
   Container, 
   Loader2, 
-  Sparkles,
-  Plus,
-  Trash2,
-  AlertTriangle
+  Plus, 
+  Trash2, 
+  AlertTriangle 
 } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { CaseModel } from '../types';
@@ -36,32 +34,27 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Step 1: Case Info State
-  const [containerId, setContainerId] = useState('MSKU9082345');
-  const [commodity, setCommodity] = useState('Frozen Pharmaceutical Vaccines');
-  const [declaredValue, setDeclaredValue] = useState('100000');
-  const [claimedLoss, setClaimedLoss] = useState('75000');
-  const [originFacility, setOriginFacility] = useState('APM Terminals Pier 400 Los Angeles, CA');
-  const [destinationFacility, setDestinationFacility] = useState('Midwest Health Distribution Chicago, IL');
-  const [carrierName, setCarrierName] = useState('Apex Drayage Logistics LLC');
-  const [consigneeName, setConsigneeName] = useState('Midwest Cold Chain Medical Inc.');
+  // Step 1: Case Info State (Clean Empty State)
+  const [containerId, setContainerId] = useState('');
+  const [commodity, setCommodity] = useState('');
+  const [declaredValue, setDeclaredValue] = useState('');
+  const [claimedLoss, setClaimedLoss] = useState('');
+  const [originFacility, setOriginFacility] = useState('');
+  const [destinationFacility, setDestinationFacility] = useState('');
+  const [carrierName, setCarrierName] = useState('');
+  const [consigneeName, setConsigneeName] = useState('');
 
-  // Step 2: Evidence Files State
+  // Step 2: Evidence Files State (Clean Empty State)
   const [eirFile, setEirFile] = useState<File | null>(null);
-  const [eirPreview, setEirPreview] = useState<string | null>(null);
   const [telemetryFile, setTelemetryFile] = useState<File | null>(null);
   const [telemetryMeta, setTelemetryMeta] = useState<{
     rowCount: number;
-    startTime: string;
-    endTime: string;
+    fileName: string;
   } | null>(null);
 
   // Step 3: Optional Supporting Docs
-  const [bolNumber, setBolNumber] = useState('BOL-MSK-984210');
-  const [optionalDocs, setOptionalDocs] = useState<{ id: string; name: string; type: string; size: string }[]>([
-    { id: '1', name: 'Pacific_Pharma_ColdChain_SLA.pdf', type: 'Contract/SLA', size: '1.2 MB' },
-    { id: '2', name: 'Carrier_Master_Interchange_Agreement.pdf', type: 'UIIA Agreement', size: '2.4 MB' }
-  ]);
+  const [bolNumber, setBolNumber] = useState('');
+  const [optionalDocs, setOptionalDocs] = useState<{ id: string; name: string; type: string; size: string }[]>([]);
   const [isAddingDoc, setIsAddingDoc] = useState(false);
   const [newDocName, setNewDocName] = useState('');
   const [newDocType, setNewDocType] = useState('Contract/SLA');
@@ -95,11 +88,11 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
 
   // STEP 2 VALIDATION LOGIC
   const step2Validation = useMemo(() => {
-    const hasEir = Boolean(eirFile || eirPreview);
-    const hasTelemetry = Boolean(telemetryFile || telemetryMeta);
+    const hasEir = Boolean(eirFile);
+    const hasTelemetry = Boolean(telemetryFile);
     const isValid = hasEir && hasTelemetry;
     return { hasEir, hasTelemetry, isValid };
-  }, [eirFile, eirPreview, telemetryFile, telemetryMeta]);
+  }, [eirFile, telemetryFile]);
 
   if (!isOpen) return null;
 
@@ -108,7 +101,6 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setEirFile(file);
-      setEirPreview(`Uploaded: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
       if (errorMsg) setErrorMsg(null);
     }
   };
@@ -116,7 +108,6 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
   const handleRemoveEir = (e: React.MouseEvent) => {
     e.stopPropagation();
     setEirFile(null);
-    setEirPreview(null);
   };
 
   // Handle Telemetry File Upload
@@ -130,8 +121,7 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
         const lines = text.split('\n').filter(l => l.trim().length > 0);
         setTelemetryMeta({
           rowCount: Math.max(lines.length - 1, 1),
-          startTime: '2026-08-15 08:00 UTC',
-          endTime: '2026-08-16 11:00 UTC'
+          fileName: file.name
         });
         if (errorMsg) setErrorMsg(null);
       };
@@ -143,17 +133,6 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
     e.stopPropagation();
     setTelemetryFile(null);
     setTelemetryMeta(null);
-  };
-
-  // Populate Sample Verified Files
-  const handleLoadSampleFiles = () => {
-    setEirPreview('APM_Pier400_GateReceipt_MSKU9082345.pdf (Verified APM Outgate Seal)');
-    setTelemetryMeta({
-      rowCount: 120,
-      startTime: '2026-08-15 08:00 UTC',
-      endTime: '2026-08-16 11:00 UTC'
-    });
-    if (errorMsg) setErrorMsg(null);
   };
 
   // Add Custom Optional Doc
@@ -245,7 +224,7 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
           </button>
         </div>
 
-        {/* Step Indicator Bar (Display Only Progress Tracker) */}
+        {/* Step Indicator Bar */}
         <div className="grid grid-cols-4 border-b border-slate-200 bg-slate-100 text-[11px] font-mono select-none">
           {[
             { num: 1, label: 'Case Info' },
@@ -259,8 +238,8 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                 currentStep === s.num
                   ? 'bg-white text-blue-700 font-bold border-b-2 border-b-blue-600 shadow-xs'
                   : currentStep > s.num
-                  ? 'text-emerald-700 bg-emerald-50'
-                  : 'text-slate-400'
+                  ? 'text-emerald-700 bg-emerald-50/60'
+                  : 'text-slate-400 bg-slate-50'
               }`}
             >
               <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
@@ -268,7 +247,7 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                   ? 'bg-blue-600 text-white'
                   : currentStep > s.num
                   ? 'bg-emerald-600 text-white'
-                  : 'bg-slate-300 text-slate-600'
+                  : 'bg-slate-200 text-slate-500'
               }`}>
                 {currentStep > s.num ? '✓' : s.num}
               </span>
@@ -277,42 +256,38 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
           ))}
         </div>
 
-        {/* Modal Body Content */}
-        <div className="p-6 overflow-y-auto space-y-5 flex-1 bg-white">
+        {/* Modal Scrollable Body */}
+        <div className="p-6 overflow-y-auto flex-1 space-y-4">
           {errorMsg && (
-            <div className="p-3 rounded-lg border border-red-300 bg-red-50 text-red-800 text-xs flex items-center justify-between gap-2 shadow-xs">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-                <span className="font-medium">{errorMsg}</span>
+            <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-mono flex items-start gap-2.5 shadow-xs">
+              <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <strong className="block font-bold">Action Required</strong>
+                <span>{errorMsg}</span>
               </div>
-              <button onClick={() => setErrorMsg(null)} className="text-slate-500 hover:text-slate-800 font-mono">✕</button>
             </div>
           )}
 
-          {/* STEP 1: Case Information */}
+          {/* STEP 1: Case Info & Metadata */}
           {currentStep === 1 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">
                   1. Shipment &amp; Cargo Metadata
                 </span>
-                <span className="text-[10px] text-slate-500 font-mono">
-                  * Required fields must be completed to proceed
-                </span>
+                <span className="text-[10px] text-slate-400 font-mono">* Required fields must be completed to proceed</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
                 {/* Container ID */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="text-slate-700 font-mono text-[10px] font-bold">
                       CONTAINER / SHIPMENT ID *
                     </label>
-                    {step1Validation.isIsoFormat ? (
-                      <span className="text-[9px] text-emerald-700 font-bold font-mono">ISO 6346 Format ✓</span>
-                    ) : containerId.trim().length > 0 ? (
-                      <span className="text-[9px] text-slate-500 font-mono">Standard ID</span>
-                    ) : null}
+                    {step1Validation.isIsoFormat && (
+                      <span className="text-[10px] text-emerald-700 font-mono font-semibold">ISO 6346 Format ✓</span>
+                    )}
                   </div>
                   <input
                     type="text"
@@ -322,9 +297,9 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                       if (errorMsg) setErrorMsg(null);
                     }}
                     placeholder="e.g. MSKU9082345"
-                    className={`w-full ${!step1Validation.idValid && containerId !== 'MSKU9082345' ? 'border-red-400 bg-red-50' : ''}`}
+                    className={`w-full ${!step1Validation.idValid && containerId ? 'border-red-400 bg-red-50' : ''}`}
                   />
-                  {!step1Validation.idValid && (
+                  {!step1Validation.idValid && containerId && (
                     <span className="text-[10px] text-red-600 font-mono block mt-1">
                       Container / Shipment ID is required (min 4 characters).
                     </span>
@@ -344,13 +319,8 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                       if (errorMsg) setErrorMsg(null);
                     }}
                     placeholder="e.g. Frozen Pharmaceutical Vaccines"
-                    className={`w-full ${!step1Validation.commodityValid ? 'border-red-400 bg-red-50' : ''}`}
+                    className={`w-full ${!step1Validation.commodityValid && commodity ? 'border-red-400 bg-red-50' : ''}`}
                   />
-                  {!step1Validation.commodityValid && (
-                    <span className="text-[10px] text-red-600 font-mono block mt-1">
-                      Commodity description is required.
-                    </span>
-                  )}
                 </div>
 
                 {/* Declared Value */}
@@ -366,14 +336,9 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                       setDeclaredValue(e.target.value);
                       if (errorMsg) setErrorMsg(null);
                     }}
-                    placeholder="100000"
-                    className={`w-full ${!step1Validation.declaredValid ? 'border-red-400 bg-red-50' : ''}`}
+                    placeholder="e.g. 100000"
+                    className={`w-full ${!step1Validation.declaredValid && declaredValue ? 'border-red-400 bg-red-50' : ''}`}
                   />
-                  {!step1Validation.declaredValid && (
-                    <span className="text-[10px] text-red-600 font-mono block mt-1">
-                      Declared value must be greater than $0.
-                    </span>
-                  )}
                 </div>
 
                 {/* Claimed Dispute Loss */}
@@ -389,18 +354,14 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                       setClaimedLoss(e.target.value);
                       if (errorMsg) setErrorMsg(null);
                     }}
-                    placeholder="75000"
-                    className={`w-full ${!step1Validation.lossValid ? 'border-red-400 bg-red-50' : ''}`}
+                    placeholder="e.g. 75000"
+                    className={`w-full ${!step1Validation.lossValid && claimedLoss ? 'border-red-400 bg-red-50' : ''}`}
                   />
-                  {step1Validation.lossExceedsDeclared ? (
+                  {step1Validation.lossExceedsDeclared && (
                     <span className="text-[10px] text-red-600 font-mono block mt-1">
                       Claimed loss cannot exceed declared value (${Number(declaredValue).toLocaleString()}).
                     </span>
-                  ) : !step1Validation.lossValid ? (
-                    <span className="text-[10px] text-red-600 font-mono block mt-1">
-                      Claimed loss must be greater than $0.
-                    </span>
-                  ) : null}
+                  )}
                 </div>
 
                 {/* Origin Facility */}
@@ -442,13 +403,8 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                       if (errorMsg) setErrorMsg(null);
                     }}
                     placeholder="e.g. Apex Drayage Logistics LLC"
-                    className={`w-full ${!step1Validation.carrierValid ? 'border-red-400 bg-red-50' : ''}`}
+                    className={`w-full ${!step1Validation.carrierValid && carrierName ? 'border-red-400 bg-red-50' : ''}`}
                   />
-                  {!step1Validation.carrierValid && (
-                    <span className="text-[10px] text-red-600 font-mono block mt-1">
-                      Carrier name is required.
-                    </span>
-                  )}
                 </div>
 
                 {/* Consignee */}
@@ -474,14 +430,7 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                 <span className="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">
                   2. Evidentiary Source Ingestion
                 </span>
-                <button
-                  type="button"
-                  onClick={handleLoadSampleFiles}
-                  className="text-[11px] text-blue-600 hover:text-blue-800 font-bold font-mono flex items-center gap-1 underline underline-offset-2"
-                >
-                  <Sparkles className="w-3 h-3 text-amber-500" />
-                  Fill Sample Verified Files
-                </button>
+                <span className="text-[10px] text-slate-500 font-mono">EIR Document + Telemetry CSV Required</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -493,24 +442,24 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                         <FileText className="w-3.5 h-3.5 text-blue-600" />
                         EIR / Custody Document
                       </span>
-                      <span className={`badge ${eirFile || eirPreview ? 'badge-green' : 'badge-neutral'} text-[9px]`}>
-                        {eirFile || eirPreview ? 'Uploaded' : 'Required'}
+                      <span className={`badge ${eirFile ? 'badge-green' : 'badge-neutral'} text-[9px]`}>
+                        {eirFile ? 'Uploaded' : 'Required'}
                       </span>
                     </div>
                     <p className="text-[10px] text-slate-500 font-sans mb-3">
                       Gate interchange receipt, equipment inspection, or signed bill of lading (PDF/PNG/JPG).
                     </p>
 
-                    {eirFile || eirPreview ? (
+                    {eirFile ? (
                       <div className="border border-emerald-300 bg-emerald-50 rounded-lg p-3 flex items-center justify-between text-xs font-mono shadow-xs">
                         <div className="flex items-center gap-2 truncate">
                           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                           <div className="truncate">
                             <span className="truncate text-slate-900 font-bold block text-[11px]">
-                              {eirFile ? eirFile.name : 'APM_Pier400_GateReceipt_MSKU9082345.pdf'}
+                              {eirFile.name}
                             </span>
                             <span className="text-[9px] text-slate-600 font-sans block">
-                              {eirPreview || 'Clean equipment remarks • 14:30 UTC Outgate'}
+                              {(eirFile.size / 1024).toFixed(1)} KB • File Ready
                             </span>
                           </div>
                         </div>
@@ -546,23 +495,23 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                         <Activity className="w-3.5 h-3.5 text-cyan-600" />
                         IoT Sensor Telemetry
                       </span>
-                      <span className={`badge ${telemetryMeta ? 'badge-green' : 'badge-neutral'} text-[9px]`}>
-                        {telemetryMeta ? 'Validated' : 'Required'}
+                      <span className={`badge ${telemetryFile ? 'badge-green' : 'badge-neutral'} text-[9px]`}>
+                        {telemetryFile ? 'Uploaded' : 'Required'}
                       </span>
                     </div>
                     <p className="text-[10px] text-slate-500 font-sans mb-3">
                       Calibrated time-series CSV containing temperature, shock impact, and UTC timestamps.
                     </p>
 
-                    {telemetryMeta ? (
+                    {telemetryFile ? (
                       <div className="border border-emerald-300 bg-emerald-50 rounded-lg p-3 flex items-center justify-between text-xs font-mono shadow-xs">
                         <div className="space-y-1 truncate">
                           <div className="flex items-center gap-1.5 text-emerald-800 font-bold text-[11px]">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>Validated Telemetry ({telemetryMeta.rowCount} samples)</span>
+                            <span>{telemetryFile.name}</span>
                           </div>
                           <div className="text-[9px] text-slate-600 truncate">
-                            Range: {telemetryMeta.startTime.slice(0, 16)} &rarr; {telemetryMeta.endTime.slice(0, 16)}
+                            {(telemetryFile.size / 1024).toFixed(1)} KB • {telemetryMeta?.rowCount || 'Valid'} samples
                           </div>
                         </div>
                         <button
@@ -590,13 +539,10 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                 </div>
               </div>
 
-              {/* Requirement reminder when missing */}
               {!step2Validation.isValid && (
                 <div className="p-2.5 rounded-lg text-xs font-mono text-amber-800 flex items-center gap-2 border border-amber-300 bg-amber-50">
                   <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                  <span>
-                    Both an EIR Document and Telemetry CSV are required to continue, or click <strong>Fill Sample Verified Files</strong>.
-                  </span>
+                  <span>Both an EIR Document and Telemetry CSV are required to proceed to analysis.</span>
                 </div>
               )}
             </div>
@@ -648,35 +594,35 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                           value={newDocName}
                           onChange={(e) => setNewDocName(e.target.value)}
                           placeholder="Document name (e.g. Delivery_Receipt)"
-                          className="text-xs"
                         />
                         <select
                           value={newDocType}
                           onChange={(e) => setNewDocType(e.target.value)}
-                          className="bg-white text-slate-900 text-xs p-2 rounded border border-slate-300"
+                          className="text-xs font-mono bg-white border border-slate-300 rounded px-2"
                         >
                           <option value="Contract/SLA">Contract / SLA</option>
-                          <option value="Bill of Lading">Bill of Lading</option>
-                          <option value="Proof of Delivery">Proof of Delivery</option>
+                          <option value="UIIA Agreement">UIIA Agreement</option>
                           <option value="Inspection Report">Inspection Report</option>
+                          <option value="Commercial Invoice">Commercial Invoice</option>
                         </select>
                       </div>
-                      <button
-                        type="button"
-                        onClick={handleAddOptionalDoc}
-                        disabled={!newDocName.trim()}
-                        className="btn-primary text-xs py-1 px-3"
-                      >
-                        Add Attachment
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={handleAddOptionalDoc}
+                          className="btn-primary text-xs py-1 px-3"
+                        >
+                          Add Document
+                        </button>
+                      </div>
                     </div>
                   )}
 
                   <div className="space-y-1.5">
                     {optionalDocs.length === 0 ? (
-                      <span className="text-[10px] text-slate-400 font-mono italic block py-2">
-                        No additional reference files attached.
-                      </span>
+                      <p className="text-[10px] text-slate-400 italic py-1 font-mono">
+                        No optional reference documents attached.
+                      </p>
                     ) : (
                       optionalDocs.map((doc) => (
                         <div key={doc.id} className="bg-white p-2 rounded border border-slate-200 flex items-center justify-between text-xs font-mono shadow-xs">
@@ -721,11 +667,11 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                     SHIPMENT &amp; ROUTING
                   </span>
                   <div className="text-slate-700 font-mono space-y-0.5 text-[11px]">
-                    <div>Container: <strong className="text-slate-900 font-bold">{containerId}</strong></div>
-                    <div>Commodity: {commodity}</div>
-                    <div>Claim: <strong className="text-emerald-700 font-bold">${Number(claimedLoss).toLocaleString()} USD</strong></div>
-                    <div className="truncate">Origin: {originFacility}</div>
-                    <div className="truncate">Carrier: {carrierName}</div>
+                    <div>Container: <strong className="text-slate-900 font-bold">{containerId || 'N/A'}</strong></div>
+                    <div>Commodity: {commodity || 'N/A'}</div>
+                    <div>Claim: <strong className="text-emerald-700 font-bold">${Number(claimedLoss || 0).toLocaleString()} USD</strong></div>
+                    <div className="truncate">Origin: {originFacility || 'Not specified'}</div>
+                    <div className="truncate">Carrier: {carrierName || 'N/A'}</div>
                   </div>
                 </div>
 
@@ -736,15 +682,15 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                   <div className="text-slate-700 font-mono space-y-0.5 text-[11px]">
                     <div className="flex items-center gap-1.5">
                       <span className="text-emerald-700 font-bold">✓</span>
-                      <span>EIR Document: {eirFile?.name || 'APM_Pier400_GateReceipt_MSKU9082345.pdf'}</span>
+                      <span>EIR Document: {eirFile?.name || 'Uploaded'}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="text-emerald-700 font-bold">✓</span>
-                      <span>IoT Telemetry: {telemetryMeta?.rowCount || 120} Calibrated Samples</span>
+                      <span>IoT Telemetry: {telemetryFile?.name || `${telemetryMeta?.rowCount || 0} samples`}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="text-emerald-700 font-bold">✓</span>
-                      <span>Contract Reference: {bolNumber} ({optionalDocs.length} attached)</span>
+                      <span>Contract Reference: {bolNumber || 'None'} ({optionalDocs.length} attached)</span>
                     </div>
                   </div>
                 </div>
@@ -800,26 +746,22 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {currentStep < 4 ? (
               <button
                 onClick={() => {
                   if (currentStep === 1 && !step1Validation.isValid) {
-                    setErrorMsg('Please complete all required fields with valid values before proceeding.');
+                    setErrorMsg('Please enter all required shipment metadata (*).');
                     return;
                   }
                   if (currentStep === 2 && !step2Validation.isValid) {
-                    setErrorMsg('Please provide both an EIR Document and Telemetry CSV to proceed.');
+                    setErrorMsg('Both an EIR Document and Telemetry CSV are required to continue.');
                     return;
                   }
                   setErrorMsg(null);
                   setCurrentStep(currentStep + 1);
                 }}
-                disabled={
-                  (currentStep === 1 && !step1Validation.isValid) ||
-                  (currentStep === 2 && !step2Validation.isValid)
-                }
-                className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                className="btn-primary text-xs"
               >
                 <span>Continue</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -827,17 +769,17 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
             ) : (
               <button
                 onClick={handleExecuteAnalysis}
-                disabled={isSubmitting || !step1Validation.isValid || !step2Validation.isValid}
-                className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                disabled={isSubmitting}
+                className="btn-primary text-xs shadow-md font-bold"
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Executing Pipeline...</span>
+                    <span>Analyzing Incident...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <Activity className="w-3.5 h-3.5" />
                     <span>Analyze Incident</span>
                   </>
                 )}

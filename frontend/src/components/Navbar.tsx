@@ -1,6 +1,7 @@
 import React from 'react';
 import { RefreshCw, Server, Plus } from 'lucide-react';
 import { ModelConfigInfo } from '../types';
+import logoImg from '../assets/logo.png';
 
 interface NavbarProps {
   modelInfo?: ModelConfigInfo;
@@ -27,7 +28,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Brand & Logo */}
         <div className="flex items-center gap-3.5">
           <img 
-            src="/logo.png" 
+            src={logoImg} 
             alt="SubroGate Logo" 
             className="h-8 sm:h-9 object-contain select-none"
           />
@@ -40,12 +41,12 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right Action Controls */}
         <div className="flex items-center gap-3">
-          {/* Environment Status Badge */}
+          {/* AI Model Status Badge */}
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-xs">
-            <Server className="w-3 h-3 text-slate-500" />
-            <span className="text-[10px] text-slate-500">Mode:</span>
-            <span className={`text-[10px] font-bold ${isLiveMode ? 'text-emerald-600' : 'text-cyan-700'}`}>
-              {isLiveMode ? 'Live Cloud AI' : 'Demo / Local Mode'}
+            <Server className="w-3 h-3 text-cyan-600" />
+            <span className="text-[10px] text-slate-500">Model:</span>
+            <span className="text-[10px] font-bold text-cyan-700 font-mono">
+              {modelInfo?.configured_model || 'Gemini 3.5 (Vertex AI)'}
             </span>
           </div>
 
@@ -61,14 +62,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           )}
 
-          {/* Refresh Action */}
+          {/* Refresh Status Button */}
           <button
             onClick={onRefresh}
             disabled={isLoading}
-            className="p-1.5 rounded-md bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 transition-colors shadow-xs"
-            title="Refresh System Health & Case State"
+            className="p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            title="Refresh system connection"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-blue-600' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-blue-600' : ''}`} />
           </button>
         </div>
       </div>

@@ -180,7 +180,6 @@ export function App() {
         {!activeCase && (
           <LandingHero
             onStartNew={() => setIsNewModalOpen(true)}
-            onLoadDemo={handleLoadCleanDemo}
             isLoading={isLoading || actionLoading !== null}
           />
         )}
