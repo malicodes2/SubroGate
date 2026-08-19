@@ -1,0 +1,31 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.coverage
+htmlcov
+.venv
+env
+venv
+
+# Node / Frontend
+frontend/node_modules
+frontend/.npm
+frontend/dist
+
+# IDE / Gemini / Antigravity
+.gemini
+.agents
+.vscode
+.idea
+
+# Temporary & Environment files
+.env
+.env.local
+*.log
