@@ -15,7 +15,7 @@ All configuration parameters are centralized in `backend/config.py` using Pydant
 | `GOOGLE_CLOUD_PROJECT` | *(None)* | GCP Project ID (for Vertex AI & Firestore on Cloud Run). |
 | `GOOGLE_CLOUD_LOCATION`| `us-central1` | GCP Region for Vertex AI. |
 | `SUBROGATE_USE_VERTEX` | `true` | Set `true` to route via Google Cloud Vertex AI (Google ADK). |
-| `CORS_ORIGINS` | `https://muhammadasghar0.github.io,http://localhost:5173,http://localhost:8000` | Allowed CORS origins (comma-separated). |
+| `CORS_ORIGINS` | `https://malicodes2.github.io,http://localhost:5173,http://localhost:8000` | Allowed CORS origins (comma-separated). |
 
 ---
 

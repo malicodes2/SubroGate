@@ -222,7 +222,7 @@ The frontend will be available at `http://localhost:5173` and automatically prox
 | `GOOGLE_CLOUD_PROJECT` | *(None)* | GCP Project ID (for Vertex AI & Firestore on Cloud Run). |
 | `GOOGLE_CLOUD_LOCATION`| `us-central1` | GCP region for Vertex AI. |
 | `SUBROGATE_USE_VERTEX` | `true` | Route through Vertex AI (Google ADK). |
-| `CORS_ORIGINS` | `https://muhammadasghar0.github.io,http://localhost:5173` | Allowed CORS origins (comma-separated). |
+| `CORS_ORIGINS` | `https://malicodes2.github.io,http://localhost:5173` | Allowed CORS origins (comma-separated). |
 
 ---
 

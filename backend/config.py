@@ -57,7 +57,7 @@ class SubroGateSettings(BaseSettings):
                 "CORS_ORIGINS",
                 os.getenv(
                     "SUBROGATE_CORS_ORIGINS",
-                    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8000,http://127.0.0.1:8000,https://malicodes2.github.io,https://muhammadasghar0.github.io,*"
+                    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8000,http://127.0.0.1:8000,https://malicodes2.github.io,*"
                 )
             ).split(",") if origin.strip()
         ],

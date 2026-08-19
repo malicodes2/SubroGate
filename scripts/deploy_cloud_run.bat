@@ -31,7 +31,7 @@ echo Enabling necessary GCP services (Cloud Run, Vertex AI, Firestore)...
 call gcloud services enable run.googleapis.com aiplatform.googleapis.com firestore.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com --project=%GOOGLE_CLOUD_PROJECT%
 
 echo Building and deploying container to Google Cloud Run...
-call gcloud run deploy %SERVICE_NAME% --source . --project %GOOGLE_CLOUD_PROJECT% --region %REGION% --platform managed --allow-unauthenticated --memory 1Gi --cpu 1 --min-instances 0 --max-instances 10 --set-env-vars SUBROGATE_ENV=production,SUBROGATE_GEMINI_MODEL=%GEMINI_MODEL%,SUBROGATE_USE_VERTEX=true,GOOGLE_CLOUD_PROJECT=%GOOGLE_CLOUD_PROJECT%,GOOGLE_CLOUD_LOCATION=%REGION%,CORS_ORIGINS=https://muhammadasghar0.github.io,http://localhost:5173,*
+call gcloud run deploy %SERVICE_NAME% --source . --project %GOOGLE_CLOUD_PROJECT% --region %REGION% --platform managed --allow-unauthenticated --memory 1Gi --cpu 1 --min-instances 0 --max-instances 10 --set-env-vars SUBROGATE_ENV=production,SUBROGATE_GEMINI_MODEL=%GEMINI_MODEL%,SUBROGATE_USE_VERTEX=true,GOOGLE_CLOUD_PROJECT=%GOOGLE_CLOUD_PROJECT%,GOOGLE_CLOUD_LOCATION=%REGION%,CORS_ORIGINS=https://malicodes2.github.io,http://localhost:5173,*
 
 for /f "tokens=*" %%u in ('gcloud run services describe %SERVICE_NAME% --platform managed --region %REGION% --project %GOOGLE_CLOUD_PROJECT% --format "value(status.url)"') do set SERVICE_URL=%%u
 

@@ -50,7 +50,7 @@ gcloud run deploy "$SERVICE_NAME" \
   --cpu 1 \
   --min-instances 0 \
   --max-instances 10 \
-  --set-env-vars "SUBROGATE_ENV=production,SUBROGATE_GEMINI_MODEL=$GEMINI_MODEL,SUBROGATE_USE_VERTEX=true,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=$REGION,CORS_ORIGINS=https://muhammadasghar0.github.io,http://localhost:5173,*"
+  --set-env-vars "SUBROGATE_ENV=production,SUBROGATE_GEMINI_MODEL=$GEMINI_MODEL,SUBROGATE_USE_VERTEX=true,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=$REGION,CORS_ORIGINS=https://malicodes2.github.io,http://localhost:5173,*"
 
 # 4. Fetch Deployed Cloud Run Service URL
 SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME" --platform managed --region "$REGION" --project "$PROJECT_ID" --format 'value(status.url)')

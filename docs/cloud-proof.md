@@ -30,7 +30,7 @@ graph TD
 
 | Resource | Target Provider | Configuration / URL | Status |
 | :--- | :--- | :--- | :--- |
-| **Frontend Web App** | GitHub Pages (SPA) | `https://muhammadasghar0.github.io/SubroGate/` | Configured with SPA redirect (`404.html`) & `VITE_API_BASE_URL` |
+| **Frontend Web App** | GitHub Pages (SPA) | `https://malicodes2.github.io/SubroGate/` | Configured with SPA redirect (`404.html`) & `VITE_API_BASE_URL` |
 | **Backend API** | Google Cloud Run | `https://subrogate-backend-f7x4w6k7za-uc.a.run.app` | Docker container on Python 3.12, dynamic `PORT`, healthchecks |
 | **Healthcheck Endpoint** | Cloud Run | `https://subrogate-backend-f7x4w6k7za-uc.a.run.app/health` | Returns active Gemini model, Firestore status, GCP project |
 | **GCP Project ID** | Google Cloud Platform | `subrogate-hackathon-2026` | Region: `us-central1` |
