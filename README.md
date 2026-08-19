@@ -200,3 +200,12 @@ python -m pytest backend/tests -v
 # Run frontend typecheck & production build
 npm run build --prefix frontend
 ```
+
+---
+
+## ⚠️ Known Limitations
+
+- **GPS Multipath & Tunnels**: GPS coordinates in mountain passes, marine terminals, or urban canyons are subject to atmospheric drift; internal calibrated accelerometer and temperature logger timestamps remain authoritative.
+- **Physical Signature Forensics**: Handwriting signature extraction verifies the presence and legibility of interchange clerk and driver signatures, but does not perform legal biometric signature authentication.
+- **Judicial Disclaimer**: SubroGate produces forensic evidence packages for commercial freight claim adjusters and insurers; it does not replace licensed claims adjusters or legal counsel.
+
