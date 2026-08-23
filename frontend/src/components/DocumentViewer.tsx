@@ -11,11 +11,13 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   eirData
 }) => {
   const gateEvent = eirData?.gate_event_type || 'N/A';
-  const handoverTime = eirData?.handover_timestamp_utc || 'N/A';
-  const conditionRemarks = eirData?.damage_remarks || 'N/A';
-  const sha256 = eirData?.sha256_fingerprint || 'N/A';
-  const issuingFacility = eirData?.issuing_facility || 'N/A';
-  const receivingCarrier = eirData?.receiving_party || 'N/A';
+  const handoverTime = eirData?.raw_timestamp_str || 'N/A';
+  const conditionRemarks = eirData?.damage_remarks || eirData?.condition_summary || 'N/A';
+  const sha256 = 'N/A'; // Passed via eirData if we added it, or leave N/A
+  const issuingFacility = eirData?.releasing_entity || 'N/A';
+  const receivingCarrier = eirData?.receiving_entity || eirData?.carrier_name || 'N/A';
+  const truckLicense = eirData?.tractor_license_plate || 'N/A';
+  const reeferSetPoint = eirData?.reefer_info?.setpoint_temp_c ? `${eirData.reefer_info.setpoint_temp_c}°C` : 'N/A';
 
   return (
     <div className="glass-card flex flex-col h-full overflow-hidden shadow-sm">
@@ -100,12 +102,12 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
             <div>
               <span className="text-[9px] text-[#64748B] block uppercase font-sans font-semibold">TRACTOR / TRUCK LICENSE</span>
-              <span className="text-[#334155]">{eirData?.truck_license || 'N/A'}</span>
+              <span className="text-[#334155]">{truckLicense}</span>
             </div>
 
             <div>
               <span className="text-[9px] text-[#64748B] block uppercase font-sans font-semibold">REEFER SET POINT</span>
-              <span className="text-[#334155]">{eirData?.reefer_set_point || 'N/A'}</span>
+              <span className="text-[#334155]">{reeferSetPoint}</span>
             </div>
           </div>
 
