@@ -246,7 +246,7 @@ def test_firestore_failure_resilient_local_fallback():
 
     case = CaseModel(
         case_id="CASE-LOCAL-FALLBACK",
-        status=CaseStatus.INGESTED,
+        status=CaseStatus.NEW,
         version=1,
         shipment_info=ShipmentInfo(container_id="MSKU9082345"),
         source_document_refs=[],

@@ -11,7 +11,7 @@ interface EvidenceSectionProps {
 }
 
 export const EvidenceSection: React.FC<EvidenceSectionProps> = ({
-  containerId = 'MSKU9082345',
+  containerId = '',
   eirData,
   telemetryRef
 }) => {

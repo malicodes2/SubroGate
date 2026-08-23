@@ -13,17 +13,19 @@ import {
   Cpu, 
   ShieldCheck, 
   Scale, 
-  Send 
+  Send,
+  X
 } from 'lucide-react';
 import { OperationalSpanEvent, ObservabilityStatusResponse } from '../types';
 import { apiClient } from '../api/client';
 
 interface TechnicalTraceDrawerProps {
   caseId: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export const TechnicalTraceDrawer: React.FC<TechnicalTraceDrawerProps> = ({ caseId }) => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+export const TechnicalTraceDrawer: React.FC<TechnicalTraceDrawerProps> = ({ caseId, isOpen, onClose }) => {
   const [spans, setSpans] = useState<OperationalSpanEvent[]>([]);
   const [obsStatus, setObsStatus] = useState<ObservabilityStatusResponse | null>(null);
   const [expandedSpanId, setExpandedSpanId] = useState<string | null>(null);
@@ -51,6 +53,8 @@ export const TechnicalTraceDrawer: React.FC<TechnicalTraceDrawerProps> = ({ case
     }
   }, [caseId, isOpen]);
 
+  if (!isOpen) return null;
+
   const getCategoryIcon = (category: string, stepName: string) => {
     if (stepName.includes('Upload')) return <FileText className="w-3.5 h-3.5 text-slate-500" />;
     if (stepName.includes('EIR')) return <FileText className="w-3.5 h-3.5 text-blue-600" />;
@@ -68,61 +72,60 @@ export const TechnicalTraceDrawer: React.FC<TechnicalTraceDrawerProps> = ({ case
   const totalDurationMs = spans.reduce((sum, s) => sum + (s.duration_ms || 0), 0);
 
   return (
-    <div className="glass-card overflow-hidden shadow-sm">
-      {/* Collapsible Drawer Header */}
-      <div 
-        onClick={() => setIsOpen(!isOpen)}
-        className="px-5 py-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors select-none"
-      >
-        <div className="flex items-center gap-2.5">
-          <Terminal className="w-4 h-4 text-slate-500" />
-          <div>
-            <h3 className="font-heading font-bold text-xs text-slate-900 flex items-center gap-2">
-              Technical Details &amp; OpenTelemetry Execution Trace
-              <span className="badge badge-neutral text-[9px] py-0 font-mono">
-                OTel v1.44
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden m-4 border border-slate-200">
+        
+        {/* Header */}
+        <div className="px-5 py-4 flex items-center justify-between border-b border-slate-200 bg-slate-50">
+          <div className="flex items-center gap-2.5">
+            <Terminal className="w-5 h-5 text-slate-500" />
+            <div>
+              <h3 className="font-heading font-bold text-sm text-slate-900 flex items-center gap-2">
+                Technical Details &amp; OpenTelemetry Execution Trace
+                <span className="badge badge-neutral text-[9px] py-0 font-mono">
+                  OTel v1.44
+                </span>
+              </h3>
+              <p className="text-[10px] text-slate-500 font-mono">
+                Safe operational execution telemetry • Zero hidden model chain-of-thought traces
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-xs font-mono text-slate-500 hidden sm:flex">
+              <Cloud className={`w-3.5 h-3.5 ${obsStatus?.gcp_trace_active ? 'text-emerald-600' : 'text-slate-400'}`} />
+              <span className="text-[10px] font-medium">
+                {obsStatus?.gcp_trace_active ? 'GCP Trace Active' : 'Memory Buffer'}
               </span>
-            </h3>
-            <p className="text-[10px] text-slate-500 font-mono">
-              Safe operational execution telemetry • Zero hidden model chain-of-thought traces
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-500 hidden sm:flex">
-            <Cloud className={`w-3 h-3 ${obsStatus?.gcp_trace_active ? 'text-emerald-600' : 'text-slate-400'}`} />
-            <span className="text-[10px] font-medium">
-              {obsStatus?.gcp_trace_active ? 'GCP Trace Active' : 'Memory Buffer'}
-            </span>
-            <span className="text-slate-300">|</span>
-            <span className="text-slate-800 text-[10px] font-bold">
-              {spans.length || 9} Spans ({Math.round(totalDurationMs) || 1285}ms)
-            </span>
-          </div>
-
-          <div className="p-1 text-slate-500">
-            {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-          </div>
-        </div>
-      </div>
-
-      {/* Expanded Trace Details */}
-      {isOpen && (
-        <div className="p-5 pt-0 space-y-3 border-t border-slate-200 bg-slate-50/50">
-          <div className="flex items-center justify-between pt-3 pb-2 text-xs font-mono text-slate-600">
-            <span className="font-bold">SEQUENTIAL WATERFALL SPANS</span>
+              <span className="text-slate-300">|</span>
+              <span className="text-slate-800 text-[10px] font-bold">
+                {spans.length || 9} Spans ({Math.round(totalDurationMs) || 1285}ms)
+              </span>
+            </div>
+            
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                fetchTrace();
-              }}
+              onClick={fetchTrace}
               disabled={isLoading}
-              className="p-1 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 transition-colors shadow-xs"
+              className="p-1.5 rounded hover:bg-slate-200 text-slate-500 hover:text-slate-700 transition-colors"
               title="Refresh Trace Spans"
             >
-              <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin text-blue-600' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-blue-600' : ''}`} />
             </button>
+
+            <button 
+              onClick={onClose}
+              className="p-1.5 rounded bg-slate-200 hover:bg-slate-300 text-slate-700 transition-colors ml-1"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Trace Details List */}
+        <div className="p-5 overflow-y-auto bg-slate-50/50 flex-1">
+          <div className="flex items-center justify-between pb-3 text-xs font-mono text-slate-600">
+            <span className="font-bold">SEQUENTIAL WATERFALL SPANS</span>
           </div>
 
           <div className="space-y-1.5">
@@ -158,7 +161,7 @@ export const TechnicalTraceDrawer: React.FC<TechnicalTraceDrawerProps> = ({ case
                             {span.step_name}
                           </span>
                           <span className="text-[9px] font-mono text-slate-500 bg-slate-100 px-1 py-0.2 rounded border border-slate-200 truncate hidden sm:inline">
-                            trace: {span.trace_id.slice(0, 8)}...
+                            trace: {span.trace_id?.slice(0, 8)}...
                           </span>
                         </div>
                       </div>
@@ -212,7 +215,7 @@ export const TechnicalTraceDrawer: React.FC<TechnicalTraceDrawerProps> = ({ case
             })}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

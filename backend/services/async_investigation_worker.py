@@ -31,7 +31,7 @@ logger = logging.getLogger("subrogate.async_worker")
 
 class AsyncJobStatus:
     SUBMITTED = "SUBMITTED"
-    PROCESSING = "PROCESSING"
+    PROCESSING = "ANALYZING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
     RETRYING = "RETRYING"
@@ -203,7 +203,7 @@ class AsyncInvestigationWorker:
             # Transition status to PROCESSING
             processing_case = self.case_service.transition_status(
                 case_id=case_id,
-                new_status=CaseStatus.PROCESSING,
+                new_status=CaseStatus.ANALYZING,
                 actor="ASYNC_WORKER",
                 reason="Dispatched to background execution thread pool."
             )
@@ -342,7 +342,7 @@ class AsyncInvestigationWorker:
             # Reset case to PROCESSING in Firestore
             updated_case = self.case_service.transition_status(
                 case_id=case_id,
-                new_status=CaseStatus.PROCESSING,
+                new_status=CaseStatus.ANALYZING,
                 actor=actor,
                 reason="Case retry requested by claims adjuster / recovery handler."
             )

@@ -4,17 +4,11 @@ import { CaseModel } from '../types';
 
 interface CaseHeaderProps {
   caseData: CaseModel;
-  onSimulateShock: () => void;
-  onSimulateFailure: () => void;
-  onReset: () => void;
   actionLoading: string | null;
 }
 
 export const CaseHeader: React.FC<CaseHeaderProps> = ({
   caseData,
-  onSimulateShock,
-  onSimulateFailure,
-  onReset,
   actionLoading
 }) => {
   const isApproved = caseData.status === 'APPROVED' || caseData.status === 'NEGOTIATION' || caseData.status === 'RESOLVED';
@@ -44,10 +38,10 @@ export const CaseHeader: React.FC<CaseHeaderProps> = ({
           <div className="flex items-baseline gap-3 flex-wrap">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
               <Container className="w-5 h-5 text-blue-600" />
-              <span>{caseData.shipment_info?.container_id || 'MSKU9082345'}</span>
+              <span>{caseData.shipment_info?.container_id || 'N/A'}</span>
             </h2>
             <span className="text-slate-600 text-sm font-medium">
-              {caseData.shipment_info?.commodity || 'Frozen Pharmaceutical Vaccines'}
+              {caseData.shipment_info?.commodity || 'N/A'}
             </span>
           </div>
 
@@ -56,7 +50,7 @@ export const CaseHeader: React.FC<CaseHeaderProps> = ({
             <div className="flex items-center gap-1.5 glass-panel px-2.5 py-1 rounded bg-slate-50 border-slate-200">
               <Building2 className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span className="text-slate-500">Origin:</span>
-              <span className="text-slate-800 font-medium">{caseData.shipment_info?.origin_facility || 'APM Terminals LA'}</span>
+              <span className="text-slate-800 font-medium">{caseData.shipment_info?.origin_facility || 'N/A'}</span>
             </div>
 
             <span className="text-slate-400 font-bold">➔</span>
@@ -64,7 +58,7 @@ export const CaseHeader: React.FC<CaseHeaderProps> = ({
             <div className="flex items-center gap-1.5 glass-panel px-2.5 py-1 rounded bg-slate-50 border-slate-200">
               <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span className="text-slate-500">Dest:</span>
-              <span className="text-slate-800 font-medium">{caseData.shipment_info?.destination_facility || 'Chicago Distribution'}</span>
+              <span className="text-slate-800 font-medium">{caseData.shipment_info?.destination_facility || 'N/A'}</span>
             </div>
 
             {caseData.shipment_info?.carrier_name && (
@@ -82,49 +76,19 @@ export const CaseHeader: React.FC<CaseHeaderProps> = ({
             <div className="glass-inset p-3 min-w-[120px] bg-slate-50 border-slate-200">
               <span className="text-[10px] text-slate-500 block uppercase font-semibold">DECLARED VALUE</span>
               <span className="text-sm font-bold text-slate-800 block mt-0.5">
-                ${caseData.shipment_info?.declared_value_usd?.toLocaleString() || '100,000'}
+                {caseData.shipment_info?.declared_value_usd ? `$${caseData.shipment_info.declared_value_usd.toLocaleString()}` : 'N/A'}
               </span>
             </div>
 
             <div className="glass-inset p-3 min-w-[130px] border-blue-200 bg-blue-50/70">
               <span className="text-[10px] text-blue-700 block uppercase font-bold">CLAIMED LOSS</span>
               <span className="text-base font-extrabold text-blue-900 block mt-0.5">
-                ${caseData.shipment_info?.claimed_loss_usd?.toLocaleString() || '75,000'}
+                {caseData.shipment_info?.claimed_loss_usd ? `$${caseData.shipment_info.claimed_loss_usd.toLocaleString()}` : 'N/A'}
               </span>
             </div>
           </div>
 
-          {/* Quick Simulation & Reset Controls */}
-          <div className="flex items-center gap-2 text-xs">
-            <button
-              onClick={onSimulateShock}
-              disabled={actionLoading !== null}
-              className="btn-secondary py-1.5 px-2.5 text-xs text-slate-700 hover:text-slate-900"
-              title="Stream simulated 4.2G shock pulse to live case"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Stream Shock</span>
-            </button>
 
-            <button
-              onClick={onSimulateFailure}
-              disabled={actionLoading !== null}
-              className="btn-secondary py-1.5 px-2.5 text-xs border-red-200 text-red-600 hover:bg-red-50"
-              title="Simulate unreadable EIR extraction failure"
-            >
-              <AlertTriangle className="w-3.5 h-3.5" />
-              <span>Simulate Failure</span>
-            </button>
-
-            <button
-              onClick={onReset}
-              disabled={actionLoading !== null}
-              className="btn-secondary py-1.5 px-2 text-xs text-slate-500 hover:text-slate-800"
-              title="Reset Firestore Case State"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
-          </div>
         </div>
       </div>
     </div>

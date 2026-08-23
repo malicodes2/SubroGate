@@ -78,7 +78,7 @@ def create_approved_test_case(case_service: CaseService, case_id: str = "CASE-SE
 def test_settlement_agent_rejects_unapproved_case(case_service, settlement_service):
     """Settlement agent must fail if case is still in INGESTED status."""
     case = case_service.create_case(custom_case_id="CASE-UNAPPROVED-01")
-    assert case.status == CaseStatus.INGESTED
+    assert case.status == CaseStatus.NEW
 
     inbound = CarrierSimulator.generate_inbound_message(
         case_id=case.case_id,

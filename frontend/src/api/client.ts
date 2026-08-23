@@ -151,7 +151,7 @@ class ApiClient {
       body: JSON.stringify({
         case_id: caseId,
         objection_type: objectionType,
-        carrier_name: carrierName || 'Apex Drayage Logistics LLC'
+        carrier_name: carrierName || 'N/A'
       })
     });
   }
@@ -217,7 +217,7 @@ class ApiClient {
   // ASYNCHRONOUS BACKGROUND JOBS & TELEMETRY SIMULATOR
   // ============================================================================
 
-  async simulateTelemetryEvent(eventType: string = 'SHOCK', containerId: string = 'MSKU9082345', eventId?: string): Promise<any> {
+  async simulateTelemetryEvent(eventType: string = 'SHOCK', containerId: string = '', eventId?: string): Promise<any> {
     const params = new URLSearchParams({ event_type: eventType, container_id: containerId });
     if (eventId) params.append('event_id', eventId);
 

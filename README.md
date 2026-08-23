@@ -1,5 +1,5 @@
 # SubroGate 🛡️
-### Agentic Multimodal Forensic Assessment & Autonomous Subrogation Recovery Platform
+### Agentic Incident Reconstruction for Cargo Disputes
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python: 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
@@ -8,7 +8,7 @@
 [![Google Vertex AI](https://img.shields.io/badge/Google%20Vertex%20AI-Gemini%203.5-34A853.svg)](https://cloud.google.com/vertex-ai)
 [![Google ADK](https://img.shields.io/badge/Google-Agent%20Development%20Kit-FBBC05.svg)](https://google.github.io/)
 
-**SubroGate** is an enterprise forensic intelligence and subrogation recovery platform designed for commercial freight transit disputes. Built with **Google Vertex AI (Gemini 3.5)**, **Google Agent Development Kit (ADK)**, **Google Model Armor**, **Google Cloud Firestore**, and **Google Cloud Run**, it fuses multimodal Equipment Interchange Receipts (EIRs), Bills of Lading, and IoT sensor telemetry (temperature, 3-axis shock G-force, GPS) into an audit-ready, evidence-backed subrogation recovery package.
+**SubroGate** is an enterprise-grade **Agentic Incident Reconstruction** platform designed for commercial freight transit disputes. Built with **Google Vertex AI (Gemini 3.5)**, **Google Agent Development Kit (ADK)**, **Google Model Armor**, **Google Cloud Firestore**, and **Google Cloud Run**, it fuses fragmented physical custody evidence (Equipment Interchange Receipts, Bills of Lading) and continuous IoT sensor telemetry (temperature, 3-axis shock G-force, GPS) into an audit-ready, mathematically deterministic reconstruction of the incident to determine responsibility.
 
 ---
 
@@ -25,7 +25,7 @@ Cargo loss, spoilage, and physical transit damage account for billions in disput
 
 ## 💡 Solution
 
-SubroGate provides an **evidence-backed, mathematically deterministic forensic pipeline** governed by controlled agentic autonomy:
+SubroGate provides an **evidence-backed, mathematically deterministic incident reconstruction pipeline** governed by controlled agentic autonomy:
 
 - **Multimodal Document Intelligence**: Ingests scanned receipts, validates ISO 6346 Modulo-11 container checksums, and extracts damage remarks and custody timestamps.
 - **Deterministic Timeline Fusion**: Standardizes all time series to UTC and mathematically computes Care, Custody, and Control (CCC) overlap at the earliest recorded breach ($T_{\text{breach}} > T_{\text{interchange}}$).

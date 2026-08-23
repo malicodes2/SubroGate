@@ -7,15 +7,15 @@ interface DocumentViewerProps {
 }
 
 export const DocumentViewer: React.FC<DocumentViewerProps> = ({
-  containerId = 'MSKU9082345',
+  containerId = 'N/A',
   eirData
 }) => {
-  const gateEvent = eirData?.gate_event_type || 'OUTGATE_LOADED';
-  const handoverTime = eirData?.handover_timestamp_utc || '2026-08-15T14:30:00Z';
-  const conditionRemarks = eirData?.damage_remarks || 'CLEAN - NO VISIBLE EXTERNAL DAMAGE';
-  const sha256 = eirData?.sha256_fingerprint || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
-  const issuingFacility = eirData?.issuing_facility || 'APM Terminals Pier 400 Los Angeles';
-  const receivingCarrier = eirData?.receiving_party || 'Apex Drayage Logistics LLC';
+  const gateEvent = eirData?.gate_event_type || 'N/A';
+  const handoverTime = eirData?.handover_timestamp_utc || 'N/A';
+  const conditionRemarks = eirData?.damage_remarks || 'N/A';
+  const sha256 = eirData?.sha256_fingerprint || 'N/A';
+  const issuingFacility = eirData?.issuing_facility || 'N/A';
+  const receivingCarrier = eirData?.receiving_party || 'N/A';
 
   return (
     <div className="glass-card flex flex-col h-full overflow-hidden shadow-sm">
@@ -66,16 +66,13 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
             <div>
               <span className="text-[9px] text-[#64748B] block uppercase font-sans font-semibold">EQUIPMENT IDENTIFIER (ISO 6346)</span>
               <div className="flex items-center gap-1 text-sm font-black text-[#0F172A]">
-                <span className="bg-[#E2E8F0] px-1.5 py-0.5 rounded text-blue-900">MSK</span>
-                <span className="bg-[#E2E8F0] px-1.5 py-0.5 rounded text-blue-900">U</span>
-                <span className="bg-[#E2E8F0] px-1.5 py-0.5 rounded">908234</span>
-                <span className="bg-[#DCFCE7] text-[#166534] border border-[#86EFAC] px-1.5 py-0.5 rounded font-bold">5</span>
+                <span className="bg-[#E2E8F0] px-1.5 py-0.5 rounded">{containerId || 'N/A'}</span>
               </div>
             </div>
 
             <div className="text-right">
               <span className="text-[9px] text-[#64748B] block uppercase font-sans font-semibold">SEAL NUMBER VERIFIED</span>
-              <span className="text-xs font-bold text-[#0F172A]">MSK-SEAL-889104</span>
+              <span className="text-xs font-bold text-[#0F172A]">SEAL-N/A</span>
             </div>
           </div>
 
@@ -103,12 +100,12 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
             <div>
               <span className="text-[9px] text-[#64748B] block uppercase font-sans font-semibold">TRACTOR / TRUCK LICENSE</span>
-              <span className="text-[#334155]">CA-APEX-9482</span>
+              <span className="text-[#334155]">{eirData?.truck_license || 'N/A'}</span>
             </div>
 
             <div>
               <span className="text-[9px] text-[#64748B] block uppercase font-sans font-semibold">REEFER SET POINT</span>
-              <span className="text-[#334155]">-20.0°C (Vaccine Protocol)</span>
+              <span className="text-[#334155]">{eirData?.reefer_set_point || 'N/A'}</span>
             </div>
           </div>
 
@@ -128,12 +125,12 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
           {/* Signatures & Checksums */}
           <div className="border-t-2 border-[#334155] pt-2.5 flex items-center justify-between text-[9px] text-[#475569]">
             <div>
-              <span className="block font-sans">DRIVER SIGN-OFF: <strong className="text-[#0F172A] italic text-[11px]">J. R. Vance (Apex Drayage)</strong></span>
-              <span className="text-[8px] text-[#94A3B8]">BADGE ID: APX-DRV-8491</span>
+              <span className="block font-sans">DRIVER SIGN-OFF: <strong className="text-[#0F172A] italic text-[11px]">{eirData?.driver_name || 'N/A'}</strong></span>
+              <span className="text-[8px] text-[#94A3B8]">BADGE ID: {eirData?.driver_badge || 'N/A'}</span>
             </div>
 
             <div className="text-right">
-              <span className="block font-mono font-bold text-[#0F172A]">CLERK: G. Larson</span>
+              <span className="block font-mono font-bold text-[#0F172A]">CLERK: {eirData?.clerk_name || 'N/A'}</span>
               <span className="text-[8px] font-mono text-[#64748B]">SHA-256: {sha256.slice(0, 16)}...</span>
             </div>
           </div>

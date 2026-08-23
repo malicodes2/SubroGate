@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileCheck, AlertTriangle } from 'lucide-react';
+import { FileCheck, AlertTriangle, ArrowDown } from 'lucide-react';
 import { DocumentViewer } from './DocumentViewer';
 import { TelemetryChart } from './TelemetryChart';
 
@@ -10,64 +10,67 @@ interface CombinedEvidenceViewProps {
 }
 
 export const CombinedEvidenceView: React.FC<CombinedEvidenceViewProps> = ({
-  containerId = 'MSKU9082345',
+  containerId = 'N/A',
   eirData,
   telemetryRef
 }) => {
   return (
-    <div className="space-y-4">
-      {/* Central Correlation Banner (Light Mode) */}
-      <div className="glass-card p-4 border-blue-200 bg-gradient-to-r from-emerald-50/70 via-white to-red-50/70 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
-        {/* Left Side: Handover */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-700 shrink-0 shadow-xs">
-            <FileCheck className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-[10px] text-emerald-800 font-bold uppercase tracking-wider block">
-              1. ORIGIN CUSTODY HANDOVER
-            </span>
-            <strong className="text-sm text-slate-900 block">14:30 UTC • APM Terminal Outgate</strong>
-            <span className="text-xs text-slate-600">Clean EIR signed without pre-existing exceptions</span>
-          </div>
-        </div>
-
-        {/* Center: Causal Delta Marker */}
-        <div className="glass-panel px-4 py-2 text-center shrink-0 bg-white border-slate-200 shadow-xs">
-          <span className="text-[10px] text-slate-500 uppercase block font-semibold">TRANSIT DELTA</span>
-          <span className="text-xs font-bold text-cyan-700 block">
-            +2h 45m Post-Handover
-          </span>
-          <span className="text-[10px] text-slate-500 block">Exclusive Carrier Care</span>
-        </div>
-
-        {/* Right Side: Breach */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-red-100 border border-red-300 flex items-center justify-center text-red-700 shrink-0 shadow-xs">
-            <AlertTriangle className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-[10px] text-red-800 font-bold uppercase tracking-wider block">
-              2. EARLIEST RECORDED BREACH
-            </span>
-            <strong className="text-sm text-slate-900 block">17:15 UTC • In-Transit Barstow</strong>
-            <span className="text-xs text-slate-600">4.2G shock pulse + thermal excursion to +12.4°C</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Side-by-Side Synchronized Panes */}
+    <div className="space-y-6">
+      
+      {/* Side-by-Side Evidence Panels */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Left: Document */}
-        <div className="h-full min-h-[500px]">
-          <DocumentViewer containerId={containerId} eirData={eirData} />
+        
+        {/* Left: EIR Custody Evidence */}
+        <div className="glass-card p-4 shadow-sm border border-slate-200 flex flex-col space-y-4">
+          <div className="flex items-center gap-3 pb-3 border-b border-slate-200">
+             <div className="w-10 h-10 rounded bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0">
+               <FileCheck className="w-5 h-5" />
+             </div>
+             <div>
+               <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block">
+                 EIR / CUSTODY EVIDENCE
+               </span>
+               <strong className="text-lg text-slate-900 block">14:30 UTC</strong>
+               <span className="text-xs font-semibold text-emerald-700">Custody Transfer (Clean)</span>
+             </div>
+          </div>
+          <div className="flex-1 min-h-[400px]">
+            <DocumentViewer containerId={containerId} eirData={eirData} />
+          </div>
         </div>
 
-        {/* Right: Telemetry */}
-        <div className="h-full min-h-[500px]">
-          <TelemetryChart telemetryRef={telemetryRef} />
+        {/* Right: Sensor Telemetry */}
+        <div className="glass-card p-4 shadow-sm border border-slate-200 flex flex-col space-y-4">
+          <div className="flex items-center gap-3 pb-3 border-b border-slate-200">
+             <div className="w-10 h-10 rounded bg-red-50 border border-red-200 text-red-700 flex items-center justify-center shrink-0">
+               <AlertTriangle className="w-5 h-5" />
+             </div>
+             <div>
+               <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block">
+                 SENSOR TELEMETRY
+               </span>
+               <strong className="text-lg text-slate-900 block">17:15 UTC</strong>
+               <span className="text-xs font-semibold text-red-700">Earliest Recorded Breach</span>
+             </div>
+          </div>
+          <div className="flex-1 min-h-[400px]">
+            <TelemetryChart telemetryRef={telemetryRef} />
+          </div>
         </div>
+
       </div>
+
+      {/* Synthesis Arrow & Statement */}
+      <div className="flex flex-col items-center justify-center pt-2 pb-2">
+         <ArrowDown className="w-6 h-6 text-slate-400 mb-3" />
+         <div className="bg-slate-900 text-white px-6 py-2 rounded-full shadow-md text-sm font-bold tracking-widest uppercase flex items-center gap-2">
+            Incident Reconstructed
+         </div>
+         <p className="text-sm text-slate-600 font-medium mt-3 text-center max-w-lg">
+           Recorded breach occurred <strong className="text-slate-900">2h 45m after</strong> physical custody transfer.
+         </p>
+      </div>
+
     </div>
   );
 };

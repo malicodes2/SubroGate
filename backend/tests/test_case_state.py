@@ -69,7 +69,7 @@ def test_create_case_initial_state(service):
     )
 
     assert case.case_id.startswith("CASE-")
-    assert case.status == CaseStatus.INGESTED
+    assert case.status == CaseStatus.NEW
     assert case.version == 1
     assert case.shipment_info.container_id == "MSKU9082345"
     assert len(case.source_document_refs) == 1
@@ -89,7 +89,7 @@ def test_get_case_by_id(service):
 
     assert retrieved is not None
     assert retrieved.case_id == "CASE-2026-TEST01"
-    assert retrieved.status == CaseStatus.INGESTED
+    assert retrieved.status == CaseStatus.NEW
 
 
 def test_get_nonexistent_case_returns_none(service):
@@ -108,10 +108,10 @@ def test_update_case_increments_version(service):
     # Transition status with matching version
     updated = service.transition_status(
         case_id="CASE-2026-CONCURRENCY",
-        new_status=CaseStatus.PROCESSING,
+        new_status=CaseStatus.ANALYZING,
         expected_version=1
     )
-    assert updated.status == CaseStatus.PROCESSING
+    assert updated.status == CaseStatus.ANALYZING
     assert updated.version == 2
 
     # Next update with version 2
@@ -132,7 +132,7 @@ def test_optimistic_concurrency_conflict_rejected(service):
     with pytest.raises(ConcurrencyConflictError) as exc_info:
         service.transition_status(
             case_id="CASE-2026-CONFLICT",
-            new_status=CaseStatus.PROCESSING,
+            new_status=CaseStatus.ANALYZING,
             expected_version=99
         )
     assert "Optimistic concurrency conflict" in str(exc_info.value)
@@ -149,8 +149,8 @@ def test_complete_status_lifecycle(service):
     case = service.create_case(custom_case_id="CASE-2026-LIFECYCLE")
 
     # INGESTED -> PROCESSING
-    case = service.transition_status(case.case_id, CaseStatus.PROCESSING, actor="INGEST_PIPELINE")
-    assert case.status == CaseStatus.PROCESSING
+    case = service.transition_status(case.case_id, CaseStatus.ANALYZING, actor="INGEST_PIPELINE")
+    assert case.status == CaseStatus.ANALYZING
 
     # PROCESSING -> ASSESSMENT_READY
     case = service.transition_status(case.case_id, CaseStatus.ASSESSMENT_READY, actor="INVESTIGATOR_AGENT")
@@ -282,7 +282,7 @@ def test_api_create_and_get_case(client):
     assert create_res.status_code == 201
     created_case = create_res.json()
     case_id = created_case["case_id"]
-    assert created_case["status"] == "INGESTED"
+    assert created_case["status"] == "NEW"
     assert created_case["version"] == 1
 
     # GET /api/cases/{case_id}
@@ -293,10 +293,10 @@ def test_api_create_and_get_case(client):
     # PATCH /api/cases/{case_id}/status
     patch_res = client.patch(
         f"/api/cases/{case_id}/status",
-        json={"new_status": "PROCESSING", "actor": "AUTO_PIPELINE", "expected_version": 1}
+        json={"new_status": "ANALYZING", "actor": "AUTO_PIPELINE", "expected_version": 1}
     )
     assert patch_res.status_code == 200
-    assert patch_res.json()["status"] == "PROCESSING"
+    assert patch_res.json()["status"] == "ANALYZING"
     assert patch_res.json()["version"] == 2
 
     # Concurrency conflict test via API (passing stale expected_version=1)
@@ -326,7 +326,7 @@ def test_api_create_and_get_case(client):
 
 def test_api_list_cases_with_status_filter(client):
     # Create cases with distinct statuses
-    client.post("/api/cases", json={"shipment_info": {"container_id": "CTR-1"}, "initial_status": "INGESTED"})
+    client.post("/api/cases", json={"shipment_info": {"container_id": "CTR-1"}, "initial_status": "NEW"})
     client.post("/api/cases", json={"shipment_info": {"container_id": "CTR-2"}, "initial_status": "APPROVED"})
 
     list_res = client.get("/api/cases?status=APPROVED")

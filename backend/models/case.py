@@ -6,11 +6,13 @@ from pydantic import BaseModel, Field
 
 class CaseStatus(str, Enum):
     """Explicit lifecycle statuses for a cargo dispute subrogation case."""
-    INGESTED = "INGESTED"
-    PROCESSING = "PROCESSING"
+    NEW = "NEW"
+    INGESTING = "INGESTING"
+    ANALYZING = "ANALYZING"
     ASSESSMENT_READY = "ASSESSMENT_READY"
     HUMAN_REVIEW = "HUMAN_REVIEW"
     APPROVED = "APPROVED"
+    AWAITING_RESPONSE = "AWAITING_RESPONSE"
     NEGOTIATION = "NEGOTIATION"
     RESOLVED = "RESOLVED"
     FAILED = "FAILED"
@@ -99,7 +101,7 @@ class CaseModel(BaseModel):
     Tracks the full lifecycle of a cargo transit dispute.
     """
     case_id: str = Field(..., description="Unique case identifier (e.g. CASE-2026-A8B9C0)")
-    status: CaseStatus = Field(default=CaseStatus.INGESTED, description="Current lifecycle status")
+    status: CaseStatus = Field(default=CaseStatus.NEW, description="Current lifecycle status")
     shipment_info: ShipmentInfo = Field(default_factory=ShipmentInfo, description="Shipment metadata and container details")
     
     # Ingested References

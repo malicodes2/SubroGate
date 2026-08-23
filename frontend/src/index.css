@@ -80,7 +80,7 @@ body {
 
 /* Minimalist Modern Buttons */
 .btn-primary {
-  background: linear-gradient(135deg, #2563EB 0%, #0284C7 100%);
+  background: #2563EB;
   color: #FFFFFF;
   border: 1px solid rgba(37, 99, 235, 0.3);
   padding: 8px 18px;
@@ -97,7 +97,7 @@ body {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #1D4ED8 0%, #0369A1 100%);
+  background: #1D4ED8;
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
   transform: translateY(-1px);
 }
@@ -139,7 +139,7 @@ body {
 }
 
 .btn-success {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  background: #059669;
   color: #FFFFFF;
   border: 1px solid rgba(5, 150, 105, 0.3);
   padding: 8px 18px;
@@ -156,7 +156,7 @@ body {
 }
 
 .btn-success:hover:not(:disabled) {
-  background: linear-gradient(135deg, #047857 0%, #065F46 100%);
+  background: #047857;
   transform: translateY(-1px);
 }
 

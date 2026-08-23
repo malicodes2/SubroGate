@@ -65,7 +65,7 @@ SubroGate is packaged as a **single, unified container** to eliminate multi-serv
 |---|---|---|
 | `PORT` | `8080` | Container listening port (automatically set by Cloud Run) |
 | `SUBROGATE_ENV` | `production` | Environment tier (`production`, `development`) |
-| `SUBROGATE_GEMINI_MODEL` | `gemini-2.5-flash` | Configured Gemini Model strategy |
+| `SUBROGATE_GEMINI_MODEL` | `gemini-3.5-flash` | Configured Gemini Model strategy |
 | `SUBROGATE_USE_VERTEX` | `true` | Enables Google Vertex AI authentication via Service Account |
 | `GOOGLE_CLOUD_PROJECT` | *(GCP Project)* | Target Google Cloud Project ID |
 | `GOOGLE_CLOUD_LOCATION` | `us-central1` | Vertex AI & Cloud Run region |
@@ -97,7 +97,7 @@ gcloud run deploy subrogate \
   --min-instances="0" \
   --max-instances="5" \
   --port="8080" \
-  --set-env-vars="SUBROGATE_ENV=production,SUBROGATE_GEMINI_MODEL=gemini-2.5-flash,SUBROGATE_USE_VERTEX=true,GOOGLE_CLOUD_LOCATION=us-central1"
+  --set-env-vars="SUBROGATE_ENV=production,SUBROGATE_GEMINI_MODEL=gemini-3.5-flash,SUBROGATE_USE_VERTEX=true,GOOGLE_CLOUD_LOCATION=us-central1"
 ```
 
 ### Option C: Using Google Cloud Build CI/CD

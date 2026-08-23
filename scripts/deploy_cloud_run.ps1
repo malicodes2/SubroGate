@@ -50,7 +50,7 @@ gcloud run deploy $ServiceName `
   --min-instances="0" `
   --max-instances="5" `
   --port="8080" `
-  --set-env-vars="SUBROGATE_ENV=production,SUBROGATE_GEMINI_MODEL=gemini-3.5-flash,SUBROGATE_USE_VERTEX=true,GOOGLE_CLOUD_PROJECT=$ProjectId,GOOGLE_CLOUD_LOCATION=$Region,CORS_ORIGINS=https://malicodes2.github.io,http://localhost:5173,*"
+  --set-env-vars="SUBROGATE_ENV=production,SUBROGATE_GEMINI_MODEL=gemini-3.5-flash,SUBROGATE_USE_VERTEX=true,GOOGLE_CLOUD_PROJECT=$ProjectId,GOOGLE_CLOUD_LOCATION=$Region,CORS_ORIGINS=https://malicodes2.github.io"
 
 $ServiceUrl = (gcloud run services describe $ServiceName --platform="managed" --region=$Region --project=$ProjectId --format="value(status.url)")
 

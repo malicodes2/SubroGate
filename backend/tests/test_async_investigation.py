@@ -51,7 +51,7 @@ def test_normal_async_completion(client):
     data = response.json()
     assert "case_id" in data
     assert "job_id" in data
-    assert data["status"] in ["PROCESSING", "COMPLETED"]
+    assert data["status"] in ["ANALYZING", "COMPLETED"]
     assert data["is_duplicate"] is False
 
     case_id = data["case_id"]
@@ -138,7 +138,7 @@ def test_async_failure_handling(client):
             telemetry_csv="timestamp,latitude,longitude,temp_c,shock_g\n2026-08-15 14:00:00,34.0,-118.0,-18.0,0.5\n"
         )
         case, job, is_dup = worker.submit_investigation_async(request, custom_case_id="CASE-FAIL-01")
-        assert case.status == CaseStatus.PROCESSING
+        assert case.status == CaseStatus.ANALYZING
 
         # Wait for failure
         time.sleep(0.2)
@@ -178,7 +178,7 @@ def test_retry_and_recovery(client):
     retry_res = client.post("/api/cases/CASE-RETRY-01/retry", json={"actor": "RECOVERY_BOT"})
     assert retry_res.status_code == 200
     retried_case = retry_res.json()
-    assert retried_case["status"] in [CaseStatus.PROCESSING.value, CaseStatus.ASSESSMENT_READY.value]
+    assert retried_case["status"] in [CaseStatus.ANALYZING.value, CaseStatus.ASSESSMENT_READY.value]
 
     # 3. Wait for background completion
     recovered = False

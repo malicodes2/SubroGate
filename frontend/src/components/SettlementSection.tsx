@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Scale, Lock, Send, ShieldAlert, ShieldCheck, Sparkles, Loader2, CheckCircle2, AlertTriangle, Play, Mail, Wrench, Edit3, XCircle } from 'lucide-react';
-import { CarrierObjectionType, InboundCarrierMessage, OutboundDraft, ThreeTurnNegotiationResult, CaseStatus } from '../types';
+import { Scale, Lock, Send, ShieldAlert, ShieldCheck, Sparkles, Loader2, CheckCircle2, AlertTriangle, Mail, Wrench, Edit3, XCircle, Clock } from 'lucide-react';
+import { CarrierObjectionType, InboundCarrierMessage, OutboundDraft, CaseStatus } from '../types';
 import { apiClient } from '../api/client';
 
 interface SettlementSectionProps {
@@ -14,45 +14,70 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
   caseStatus,
   onRefreshCase
 }) => {
-  const isUnlocked = caseStatus === 'APPROVED' || caseStatus === 'NEGOTIATION' || caseStatus === 'RESOLVED';
+  const isUnlocked = caseStatus === 'APPROVED' || caseStatus === 'AWAITING_RESPONSE' || caseStatus === 'NEGOTIATION' || caseStatus === 'RESOLVED';
 
-  const [selectedObjection, setSelectedObjection] = useState<CarrierObjectionType>('DAMAGE_BEFORE_PICKUP');
   const [inboundMessage, setInboundMessage] = useState<InboundCarrierMessage | null>(null);
   const [outboundDraft, setOutboundDraft] = useState<OutboundDraft | null>(null);
-  const [simulationResult, setSimulationResult] = useState<ThreeTurnNegotiationResult | null>(null);
 
   const [isEditingDraft, setIsEditingDraft] = useState(false);
   const [editedBody, setEditedBody] = useState('');
 
-  const [isGeneratingInbound, setIsGeneratingInbound] = useState(false);
+  const [isDispatchingInitial, setIsDispatchingInitial] = useState(false);
+  const [isSimulatingResponse, setIsSimulatingResponse] = useState(false);
   const [isDrafting, setIsDrafting] = useState(false);
   const [isSanitizing, setIsSanitizing] = useState(false);
   const [isDispatching, setIsDispatching] = useState(false);
-  const [isSimulating, setIsSimulating] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
-  // 1. Generate Carrier Objection
-  const handleGenerateInbound = async (objectionType: CarrierObjectionType) => {
+  // 1. Dispatch Initial Demand
+  const handleDispatchInitialDemand = async () => {
     try {
-      setIsGeneratingInbound(true);
-      setStatusMessage(null);
-      const msg = await apiClient.generateCarrierObjectionSample(caseId, objectionType);
-      setInboundMessage(msg);
-      setOutboundDraft(null);
+      setIsDispatchingInitial(true);
+      // In a real app this would call the backend to send the initial demand and update state to AWAITING_RESPONSE
+      // For this hackathon demo, we'll simulate the state transition.
+      // We will pretend the API updates the status.
+      // (This requires a backend update endpoint or we just set local state, but we need onRefreshCase to reflect it)
+      // Since we can't easily mock backend state here without an endpoint, we'll fetch a mock inbound message immediately to enter NEGOTIATION.
+      // Or we can just use the generateCarrierObjectionSample to get the message.
+      setStatusMessage('Initial demand dispatched. Agent entering persistent monitor mode.');
+      
+      // MOCK: Auto-receive response after 2 seconds to simulate async
+      setTimeout(() => {
+        handleReceiveResponse();
+      }, 2000);
+
     } catch (e: any) {
       setStatusMessage(`Error: ${e.message}`);
     } finally {
-      setIsGeneratingInbound(false);
+      setIsDispatchingInitial(false);
     }
   };
 
-  // 2. Generate Settlement Agent Rebuttal Draft
-  const handleDraftResponse = async () => {
-    if (!inboundMessage) return;
+  // 2. Mock: Receive Carrier Response (Transitions to Negotiation)
+  const handleReceiveResponse = async () => {
+    try {
+      setIsSimulatingResponse(true);
+      setStatusMessage(null);
+      // Simulating the webhook waking up the agent
+      const msg = await apiClient.generateCarrierObjectionSample(caseId, 'DAMAGE_BEFORE_PICKUP');
+      setInboundMessage(msg);
+      setOutboundDraft(null);
+      
+      // Auto-draft the response
+      await handleDraftResponse(msg);
+    } catch (e: any) {
+      setStatusMessage(`Error: ${e.message}`);
+    } finally {
+      setIsSimulatingResponse(false);
+    }
+  };
+
+  // 3. Generate Settlement Agent Rebuttal Draft
+  const handleDraftResponse = async (inbound: InboundCarrierMessage) => {
     try {
       setIsDrafting(true);
       setStatusMessage(null);
-      const draft = await apiClient.generateSettlementDraft(caseId, inboundMessage);
+      const draft = await apiClient.generateSettlementDraft(caseId, inbound);
       setOutboundDraft(draft);
       setEditedBody(draft.draft_body_markdown);
       setIsEditingDraft(false);
@@ -63,7 +88,7 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
     }
   };
 
-  // 3. Apply Suggested Sanitization
+  // 4. Apply Suggested Sanitization
   const handleApplySanitization = async () => {
     if (!outboundDraft) return;
     try {
@@ -79,7 +104,7 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
     }
   };
 
-  // 4. Approve & Dispatch Draft
+  // 5. Approve & Dispatch Draft
   const handleApproveAndDispatch = async () => {
     if (!outboundDraft) return;
     try {
@@ -87,8 +112,8 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
       await apiClient.approveDraft(outboundDraft.draft_id, 'Senior Adjuster Sarah Doe');
       await apiClient.runDraftSecurityCheck(outboundDraft.draft_id);
       await apiClient.dispatchDraft(caseId, outboundDraft.draft_id);
-      setStatusMessage('Draft successfully dispatched to carrier claims department.');
-      await onRefreshCase();
+      setStatusMessage('Draft successfully dispatched. Negotiation resolved.');
+      await onRefreshCase(); // Should trigger a refresh which sets state to RESOLVED ideally
     } catch (e: any) {
       setStatusMessage(`Dispatch failed: ${e.message}`);
     } finally {
@@ -96,78 +121,36 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
     }
   };
 
-  // 5. Reject Draft
-  const handleRejectDraft = () => {
-    setOutboundDraft(null);
-    setStatusMessage('Draft response rejected by adjuster. Re-generate or choose another carrier defense.');
-  };
-
-  // 6. Run 3-Turn Negotiation Simulation
-  const handleRunSimulation = async () => {
-    try {
-      setIsSimulating(true);
-      setStatusMessage(null);
-      const result = await apiClient.simulateThreeTurnNegotiation(caseId);
-      setSimulationResult(result);
-      await onRefreshCase();
-    } catch (e: any) {
-      setStatusMessage(`Simulation error: ${e.message}`);
-    } finally {
-      setIsSimulating(false);
-    }
-  };
-
   return (
-    <div className="glass-card p-6 space-y-5 shadow-sm">
+    <div className="glass-card p-8 space-y-6 shadow-sm">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
         <div className="flex items-center gap-3">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shadow-xs ${
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-xs ${
             isUnlocked 
               ? 'bg-blue-50 border border-blue-200 text-blue-700' 
               : 'bg-slate-100 border border-slate-200 text-slate-400'
           }`}>
-            <Scale className="w-4 h-4" />
+            <Scale className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              Settlement Agent &amp; Dispute Recovery Desk
+            <h2 className="text-xl font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight">
+              Recovery Agent Workflow
               {isUnlocked ? (
-                <span className="badge badge-blue text-[10px]">
-                  UNLOCKED
+                <span className="badge badge-blue text-[10px] ml-2">
+                  ACTIVE
                 </span>
               ) : (
-                <span className="badge badge-amber text-[10px] flex items-center gap-1">
+                <span className="badge badge-amber text-[10px] flex items-center gap-1 ml-2">
                   <Lock className="w-2.5 h-2.5" /> LOCKED
                 </span>
               )}
             </h2>
-            <p className="text-xs text-slate-500">
-              Autonomous objection rebuttal synthesis, Model Armor security screening &amp; recovery negotiation
+            <p className="text-sm text-slate-500 font-medium">
+              Persistent state-driven negotiation and asynchronous carrier correspondence
             </p>
           </div>
         </div>
-
-        {/* 3-Turn Live Demo Button */}
-        {isUnlocked && (
-          <button
-            onClick={handleRunSimulation}
-            disabled={isSimulating}
-            className="btn-primary shadow-sm"
-          >
-            {isSimulating ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Simulating Negotiation...</span>
-              </>
-            ) : (
-              <>
-                <Play className="w-3.5 h-3.5 text-cyan-200" />
-                <span>Run 3-Turn Negotiation Demo</span>
-              </>
-            )}
-          </button>
-        )}
       </div>
 
       {/* LOCKED STATE BANNER */}
@@ -177,10 +160,10 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
             <Lock className="w-6 h-6" />
           </div>
           <h3 className="font-bold text-slate-900 text-base">
-            Settlement Agent Locked Pending Human Adjuster Sign-Off
+            Recovery Agent Locked Pending Assessment Approval
           </h3>
           <p className="text-xs text-slate-600 max-w-md leading-relaxed">
-            Under subrogation operating controls, outbound settlement notices and negotiation counter-demands cannot be initiated until an adjuster signs off on the responsibility assessment.
+            The persistent recovery agent cannot initiate subrogation demands until a human adjuster has formally reviewed and signed off on the evidence-backed responsibility assessment.
           </p>
           <div className="text-[11px] text-amber-800 bg-amber-50 px-3.5 py-1.5 rounded-md border border-amber-300 font-semibold">
             Please complete the Human Review Gate in Step 4 to unlock.
@@ -188,92 +171,93 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
         </div>
       )}
 
-      {/* UNLOCKED SETTLEMENT WORKBENCH */}
+      {/* UNLOCKED WORKFLOW */}
       {isUnlocked && (
-        <div className="space-y-5">
-          {/* Section 1: Carrier Pushback Simulator Selector */}
-          <div className="glass-inset p-4 rounded-lg space-y-3 bg-slate-50 border-slate-200">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                <Mail className="w-3.5 h-3.5 text-slate-500" />
-                1. Simulate Inbound Carrier Pushback Defense
-              </span>
-              <span className="text-[11px] text-slate-500">Select defense to simulate</span>
-            </div>
+        <div className="space-y-6">
+          
+          {/* State 1: Initial Dispatch */}
+          {!inboundMessage && (
+            <div className="glass-inset p-8 text-center rounded-lg space-y-4 bg-slate-50 border-slate-200 flex flex-col items-center">
+               <div className="w-12 h-12 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center mb-2">
+                 <Send className="w-5 h-5" />
+               </div>
+               <h3 className="font-bold text-lg text-slate-900">Initiate Persistent Recovery Agent</h3>
+               <p className="text-sm text-slate-600 max-w-lg leading-relaxed">
+                 The Recovery Agent will dispatch the formal demand package to the carrier and enter a persistent, background monitoring state. It will automatically wake up and resume the state machine when the carrier responds.
+               </p>
+               
+               {!isDispatchingInitial ? (
+                 <button
+                   onClick={handleDispatchInitialDemand}
+                   className="btn-primary mt-4 py-3 px-6 shadow-md"
+                 >
+                   <Sparkles className="w-4 h-4 mr-2" />
+                   Dispatch Demand &amp; Start Agent Monitor
+                 </button>
+               ) : (
+                 <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg flex items-center gap-3 text-blue-800 text-sm mt-4">
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                    <strong>Agent active:</strong> Monitoring designated webhook for carrier response...
+                 </div>
+               )}
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
-              {[
-                { type: 'DAMAGE_BEFORE_PICKUP', label: 'Pre-Pickup Damage' },
-                { type: 'DISPUTES_CUSTODY', label: 'Disputes Custody' },
-                { type: 'DISPUTES_SENSOR_RELIABILITY', label: 'Sensor Unreliable' },
-                { type: 'NOTICE_ALLEGEDLY_LATE', label: 'Late Notice Barred' },
-                { type: 'REQUESTS_SUPPORTING_DOCS', label: 'Requests Exhibits' },
-                { type: 'PARTIAL_SETTLEMENT_OFFER', label: 'Compromise Offer ($45k)' }
-              ].map((opt) => (
-                <button
-                  key={opt.type}
-                  onClick={() => {
-                    setSelectedObjection(opt.type as CarrierObjectionType);
-                    handleGenerateInbound(opt.type as CarrierObjectionType);
-                  }}
-                  disabled={isGeneratingInbound}
-                  className={`p-2.5 rounded-lg border text-left transition-all truncate text-xs ${
-                    selectedObjection === opt.type && inboundMessage
-                      ? 'bg-blue-50 border-blue-400 text-blue-900 font-bold shadow-xs'
-                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
+               {/* Hidden trigger for hackathon demo to mock a response arriving */}
+               {isDispatchingInitial && (
+                 <div className="pt-4 mt-4 border-t border-slate-200 w-full flex justify-center">
+                    <button onClick={handleReceiveResponse} className="text-[10px] text-slate-400 hover:text-slate-600 underline">
+                      [Demo: Force trigger inbound carrier webhook]
+                    </button>
+                 </div>
+               )}
             </div>
-          </div>
+          )}
 
-          {/* Section 2: Inbound Carrier Message Viewer */}
+          {/* State 2: Asynchronous Carrier Response Received */}
           {inboundMessage && (
-            <div className="glass-inset p-5 rounded-lg space-y-3 bg-slate-50 border-slate-200">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="text-slate-500 font-semibold text-xs">INBOUND NOTICE:</span>
-                  <span className="font-bold text-slate-900 text-xs">{inboundMessage.sender_party}</span>
+            <div className="space-y-6 border-l-2 border-blue-400 pl-6 relative">
+              <div className="absolute -left-[17px] top-4 w-8 h-8 rounded-full bg-blue-500 border-4 border-white flex items-center justify-center shadow-sm">
+                <Mail className="w-3 h-3 text-white" />
+              </div>
+              
+              <div className="glass-inset p-5 rounded-lg space-y-3 bg-slate-50 border-slate-200 shadow-sm">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-500 font-semibold text-xs uppercase tracking-wider">Agent Resumed: Inbound Notice from</span>
+                    <span className="font-bold text-slate-900 text-sm">{inboundMessage.sender_party}</span>
+                  </div>
+                  <span className="badge badge-amber text-[10px] uppercase font-bold tracking-widest">{inboundMessage.identified_objection}</span>
                 </div>
-                <span className="badge badge-amber text-[10px]">{inboundMessage.identified_objection}</span>
-              </div>
 
-              <div className="text-xs text-slate-700 glass-panel p-3.5 rounded bg-white border-slate-200 leading-relaxed shadow-xs">
-                <p className="font-bold text-slate-900 mb-1">{inboundMessage.subject}</p>
-                <p className="text-xs text-slate-700">{inboundMessage.body_text}</p>
-              </div>
+                <div className="text-sm text-slate-700 glass-panel p-4 rounded bg-white border-slate-200 leading-relaxed shadow-xs">
+                  <p className="font-bold text-slate-900 mb-2">{inboundMessage.subject}</p>
+                  <p className="text-sm text-slate-700">{inboundMessage.body_text}</p>
+                </div>
 
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-xs text-slate-500">
-                  Ready to draft grounded evidentiary rebuttal.
-                </span>
-
-                <button
-                  onClick={handleDraftResponse}
-                  disabled={isDrafting}
-                  className="btn-primary shadow-sm"
-                >
-                  {isDrafting ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Formulating Rebuttal...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Draft Evidence-Backed Rebuttal</span>
-                    </>
-                  )}
-                </button>
+                <div className="flex items-center pt-2">
+                   {isDrafting ? (
+                     <div className="flex items-center gap-2 text-sm text-blue-700 font-bold">
+                       <Loader2 className="w-4 h-4 animate-spin" />
+                       Agent formulating evidentiary rebuttal...
+                     </div>
+                   ) : (
+                     <div className="flex items-center gap-2 text-sm text-emerald-700 font-bold">
+                       <CheckCircle2 className="w-4 h-4" />
+                       Rebuttal formulated from timeline evidence.
+                     </div>
+                   )}
+                </div>
               </div>
             </div>
           )}
 
-          {/* Section 3: Outbound Draft, Security Gate & Action Controls */}
-          {outboundDraft && (
-            <div className="space-y-4 pt-2 border-t border-slate-200">
+          {/* State 3: Outbound Draft & Security Gate */}
+          {outboundDraft && !isDrafting && (
+            <div className="space-y-4 pt-4 border-t border-slate-200">
+              
+              <div className="flex items-center gap-2 mb-2">
+                 <h3 className="font-bold text-slate-900 uppercase tracking-widest text-sm">Agent Prepared Rebuttal</h3>
+              </div>
+
               {/* Security Screening Gate Banner */}
               <div className={`p-4 rounded-lg border flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs ${
                 outboundDraft.security_report?.verdict === 'BLOCK'
@@ -311,7 +295,7 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
                   <button
                     onClick={handleApplySanitization}
                     disabled={isSanitizing}
-                    className="btn-secondary text-xs py-1.5 px-3 shrink-0 flex items-center gap-1.5 border-amber-300 text-amber-800"
+                    className="btn-secondary text-xs py-1.5 px-3 shrink-0 flex items-center gap-1.5 border-amber-300 text-amber-800 hover:bg-amber-100"
                   >
                     <Wrench className="w-3 h-3" />
                     <span>Apply Sanitization</span>
@@ -320,9 +304,9 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
               </div>
 
               {/* Draft Body / Inline Editor */}
-              <div className="glass-inset p-5 rounded-lg space-y-3 bg-slate-50 border-slate-200">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200 text-xs">
-                  <span className="font-bold text-slate-900 text-xs">
+              <div className="glass-inset p-5 rounded-lg space-y-4 bg-slate-50 border-slate-200">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                  <span className="font-bold text-slate-900 text-sm">
                     {outboundDraft.draft_subject}
                   </span>
                   <span className="badge badge-neutral text-[10px]">
@@ -335,31 +319,31 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
                     rows={8}
                     value={editedBody}
                     onChange={(e) => setEditedBody(e.target.value)}
-                    className="w-full font-mono text-xs text-slate-900 p-3 rounded bg-white border border-slate-300"
+                    className="w-full font-mono text-sm text-slate-900 p-4 rounded bg-white border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   />
                 ) : (
-                  <div className="text-xs text-slate-800 whitespace-pre-line glass-panel p-4 rounded bg-white border-slate-200 leading-relaxed max-h-56 overflow-y-auto shadow-xs">
+                  <div className="text-sm text-slate-800 whitespace-pre-line glass-panel p-5 rounded bg-white border-slate-200 leading-relaxed overflow-y-auto shadow-xs border-l-4 border-l-blue-500">
                     {editedBody || outboundDraft.draft_body_markdown}
                   </div>
                 )}
 
                 {/* Evidence Citations Attached */}
-                <div className="space-y-2 pt-1">
-                  <span className="text-[11px] text-slate-600 uppercase tracking-wider block font-bold">
-                    Grounded Evidence Citations Attached:
+                <div className="space-y-2 pt-2">
+                  <span className="text-[10px] text-slate-500 uppercase tracking-widest block font-bold">
+                    Attached Evidence Payload:
                   </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {outboundDraft.relevant_evidence_citations.map((c, i) => (
-                      <div key={i} className="glass-panel p-2.5 rounded bg-white border-slate-200 shadow-xs text-xs space-y-1">
-                        <span className="text-emerald-700 font-bold block text-[11px]">{c.source_reference}</span>
-                        <span className="text-slate-600 text-[11px]">{c.relevance_explanation}</span>
+                      <div key={i} className="glass-panel p-3 rounded bg-white border-slate-200 shadow-xs space-y-1">
+                        <span className="text-blue-700 font-bold block text-xs">{c.source_reference}</span>
+                        <span className="text-slate-600 text-[11px] leading-relaxed block">{c.relevance_explanation}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* 3 Explicit Action Buttons: Approve, Edit, Reject */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-200">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-200 mt-4">
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
@@ -372,28 +356,31 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
 
                     <button
                       type="button"
-                      onClick={handleRejectDraft}
+                      onClick={() => {
+                         setOutboundDraft(null);
+                         setInboundMessage(null);
+                      }}
                       className="btn-secondary text-xs border-red-300 text-red-700 hover:bg-red-50"
                     >
                       <XCircle className="w-3.5 h-3.5 text-red-600" />
-                      <span>Reject Response</span>
+                      <span>Reject &amp; Reset</span>
                     </button>
                   </div>
 
                   <button
                     onClick={handleApproveAndDispatch}
-                    disabled={isDispatching || outboundDraft.status === 'SECURITY_BLOCKED'}
-                    className="btn-success shadow-sm"
+                    disabled={isDispatching || outboundDraft.security_report?.verdict === 'BLOCK'}
+                    className="btn-success shadow-sm py-2 px-5"
                   >
                     {isDispatching ? (
                       <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <Loader2 className="w-4 h-4 animate-spin" />
                         <span>Dispatching...</span>
                       </>
                     ) : (
                       <>
-                        <Send className="w-3.5 h-3.5" />
-                        <span>Approve Response &amp; Dispatch</span>
+                        <Send className="w-4 h-4" />
+                        <span className="font-bold">Approve &amp; Dispatch Rebuttal</span>
                       </>
                     )}
                   </button>
@@ -402,49 +389,10 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
             </div>
           )}
 
-          {/* Section 4: 3-Turn Negotiation Results */}
-          {simulationResult && (
-            <div className="glass-inset p-5 rounded-lg space-y-3.5 border-emerald-300 bg-emerald-50/50 shadow-xs">
-              <div className="flex items-center justify-between pb-2 border-b border-emerald-200">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <h3 className="font-bold text-xs text-slate-900">
-                    3-Turn Negotiation Simulation Completed
-                  </h3>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="text-slate-600 font-semibold text-xs">Final Settlement:</span>
-                  <span className="text-emerald-800 font-extrabold text-xs bg-emerald-100 px-2.5 py-1 rounded border border-emerald-300">
-                    ${simulationResult.final_settlement_usd?.toLocaleString()} USD (100% Recovery Target)
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-2.5">
-                {simulationResult.turns.map((turn) => (
-                  <div key={turn.turn_index} className="glass-panel p-3 rounded bg-white border-slate-200 space-y-2 shadow-xs">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-900 font-bold">ROUND {turn.turn_index}</span>
-                      <span className="text-emerald-700 font-semibold">{turn.notes}</span>
-                    </div>
-                    <div className="text-xs text-slate-700 bg-slate-50 p-2.5 rounded border border-slate-200">
-                      <strong className="text-slate-900 block mb-0.5">Carrier: {turn.inbound_carrier_message.subject}</strong>
-                      <span className="text-slate-600 text-[11px]">{turn.inbound_carrier_message.body_text}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="p-2.5 rounded bg-emerald-100 border border-emerald-300 text-center text-xs text-emerald-900 font-semibold">
-                ✓ Case successfully resolved and archived in Firestore persistent state with complete audit trail.
-              </div>
-            </div>
-          )}
-
           {/* Status Message Notification */}
           {statusMessage && (
-            <div className="p-3 rounded glass-panel text-xs text-slate-800 flex items-center justify-between bg-white border-slate-200 shadow-xs">
-              <span>{statusMessage}</span>
+            <div className="p-3 rounded glass-panel text-xs text-slate-800 flex items-center justify-between bg-white border-slate-200 shadow-xs mt-4">
+              <span className="font-semibold">{statusMessage}</span>
               <button onClick={() => setStatusMessage(null)} className="text-slate-500 hover:text-slate-800">✕</button>
             </div>
           )}

@@ -7,7 +7,8 @@ import {
   Scale, 
   Loader2, 
   AlertTriangle,
-  RotateCcw
+  RotateCcw,
+  Terminal
 } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { LandingHero } from './components/LandingHero';
@@ -32,6 +33,9 @@ export function App() {
   // New Investigation Wizard Modal
   const [isNewModalOpen, setIsNewModalOpen] = useState<boolean>(false);
 
+  // Technical Trace Modal
+  const [isTraceOpen, setIsTraceOpen] = useState<boolean>(false);
+
   // 5-Stage Primary Navigation (1: Evidence, 2: Reconstruction, 3: Assessment, 4: Human Review, 5: Recovery)
   const [activeStepTab, setActiveStepTab] = useState<number>(1);
 
@@ -55,12 +59,12 @@ export function App() {
 
   // Poll in-flight case if background execution is active
   useEffect(() => {
-    if (!activeCase || activeCase.status !== 'PROCESSING') return;
+    if (!activeCase || activeCase.status !== 'ANALYZING') return;
 
     const interval = setInterval(async () => {
       try {
         const updated = await apiClient.getCase(activeCase.case_id);
-        if (updated && updated.status !== 'PROCESSING') {
+        if (updated && updated.status !== 'ANALYZING') {
           setActiveCase(updated);
         }
       } catch (err) {
@@ -71,65 +75,7 @@ export function App() {
     return () => clearInterval(interval);
   }, [activeCase?.case_id, activeCase?.status]);
 
-  // Handler: Load Clean Demo Case
-  const handleLoadCleanDemo = async () => {
-    try {
-      setActionLoading('Loading verified canonical demo case...');
-      setError(null);
-      const c = await apiClient.loadDemoCleanCase();
-      setActiveCase(c);
-      setActiveStepTab(1);
-    } catch (err: any) {
-      setError(`Failed to load demo case: ${err.message}`);
-    } finally {
-      setActionLoading(null);
-    }
-  };
 
-  // Handler: Simulate Failure Demo
-  const handleLoadFailureDemo = async () => {
-    try {
-      setActionLoading('Loading unreadable EIR failure scenario...');
-      setError(null);
-      const c = await apiClient.loadDemoFailureCase();
-      setActiveCase(c);
-      setActiveStepTab(1);
-    } catch (err: any) {
-      setError(`Failed to load failure case: ${err.message}`);
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  // Handler: Simulate IoT Stream Event
-  const handleSimulateTelemetryStream = async () => {
-    if (!activeCase) return;
-    try {
-      setActionLoading('Simulating 4.2G shock pulse stream event...');
-      setError(null);
-      await apiClient.simulateTelemetryEvent('SHOCK', activeCase.shipment_info?.container_id || 'MSKU9082345');
-      const updated = await apiClient.getCase(activeCase.case_id);
-      setActiveCase(updated);
-    } catch (err: any) {
-      setError(`Stream simulation error: ${err.message}`);
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  // Handler: Reset Demo State
-  const handleResetDemo = async () => {
-    try {
-      setActionLoading('Resetting case state in Firestore...');
-      setError(null);
-      await apiClient.resetDemoState();
-      await initApp();
-    } catch (err: any) {
-      setError(`Reset error: ${err.message}`);
-    } finally {
-      setActionLoading(null);
-    }
-  };
 
   // Handler: Human Adjuster Sign-Off
   const handleApproveCase = async (approval: HumanApprovalEvent) => {
@@ -193,7 +139,7 @@ export function App() {
         )}
 
         {/* Background Processing Polling Banner */}
-        {activeCase?.status === 'PROCESSING' && (
+        {activeCase?.status === 'ANALYZING' && (
           <div className="glass-card p-5 border-blue-300 bg-blue-50/90 text-blue-950 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
             <div className="flex items-center gap-3">
               <Loader2 className="w-5 h-5 animate-spin text-blue-600 shrink-0" />
@@ -246,9 +192,6 @@ export function App() {
             {/* Minimalist Light Glass Case Header Ribbon */}
             <CaseHeader
               caseData={activeCase}
-              onSimulateShock={handleSimulateTelemetryStream}
-              onSimulateFailure={handleLoadFailureDemo}
-              onReset={handleResetDemo}
               actionLoading={actionLoading}
             />
 
@@ -302,7 +245,6 @@ export function App() {
             {activeStepTab === 2 && (
               <TimelineSection
                 timeline={activeCase.normalized_timeline as any || []}
-                responsibleParty={activeCase.shipment_info?.carrier_name}
               />
             )}
 
@@ -310,8 +252,6 @@ export function App() {
             {activeStepTab === 3 && (
               <AssessmentSection
                 assessment={activeCase.assessment as any}
-                responsibleParty={activeCase.shipment_info?.carrier_name}
-                modelIdentifier={activeCase.model_identifier}
               />
             )}
 
@@ -322,7 +262,7 @@ export function App() {
                 caseStatus={activeCase.status}
                 humanApprovals={activeCase.human_approvals}
                 onApprove={handleApproveCase}
-                onRequestReanalysis={handleLoadCleanDemo}
+                onRequestReanalysis={handleRetryCase}
                 onFlagManual={() => setError('Case escalated for manual adjuster forensic audit.')}
               />
             )}
@@ -336,8 +276,22 @@ export function App() {
               />
             )}
 
-            {/* Bottom Collapsible Technical Details / Execution Trace */}
-            <TechnicalTraceDrawer caseId={activeCase.case_id} />
+            {/* Subtle Footer for Technical Trace */}
+            <div className="flex justify-center pt-8 pb-4">
+              <button 
+                onClick={() => setIsTraceOpen(true)}
+                className="text-xs font-mono text-slate-400 hover:text-slate-600 flex items-center gap-2 transition-colors"
+              >
+                <Terminal className="w-3.5 h-3.5" />
+                <span>View System Trace Log</span>
+              </button>
+            </div>
+
+            <TechnicalTraceDrawer 
+              caseId={activeCase.case_id} 
+              isOpen={isTraceOpen}
+              onClose={() => setIsTraceOpen(false)}
+            />
           </div>
         )}
       </main>

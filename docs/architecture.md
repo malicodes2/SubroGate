@@ -6,7 +6,7 @@ SubroGate is an agentic forensic assessment system for cargo transit disputes. I
 1. **Deterministic Core**: Pure deterministic algorithms for telemetry normalization, threshold breach detection, geofence parsing, and temporal custody alignment.
 2. **AI Multimodal & Agentic Reasoning**: Applied where unstructured multimodal extraction (EIR handwriting, seal photos) and contextual reasoning across evidence provide verified value.
 3. **Google Agent Development Kit (ADK) Compatibility**: Agent layers adhere to stateless prompt execution, structured Pydantic tool schemas, and verifiable audit trails.
-4. **Centralized Model Strategy**: Configurable via `SUBROGATE_GEMINI_MODEL` (e.g. `gemini-2.5-flash`). Model names are never dynamically altered at runtime.
+4. **Centralized Model Strategy**: Configurable via `SUBROGATE_GEMINI_MODEL` (e.g. `gemini-3.5-flash`). Model names are never dynamically altered at runtime.
 
 ---
 

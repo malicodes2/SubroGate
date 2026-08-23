@@ -98,11 +98,13 @@ export interface AsyncJobStatus {
 // ==============================================================================
 
 export type CaseStatus =
-  | 'INGESTED'
-  | 'PROCESSING'
+  | 'NEW'
+  | 'INGESTING'
+  | 'ANALYZING'
   | 'ASSESSMENT_READY'
   | 'HUMAN_REVIEW'
   | 'APPROVED'
+  | 'AWAITING_RESPONSE'
   | 'NEGOTIATION'
   | 'RESOLVED'
   | 'FAILED';

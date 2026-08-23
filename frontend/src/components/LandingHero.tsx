@@ -19,15 +19,15 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
       <div className="relative z-10 max-w-3xl space-y-5">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold">
           <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-          <span>Production Forensic Cargo Subrogation Intelligence</span>
+          <span>Agentic Incident Reconstruction for Cargo Disputes</span>
         </div>
 
         <div className="space-y-2">
           <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 leading-tight">
-            Resolve cargo disputes with <span className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">evidence</span>, not arguments.
+            Reconstruct incidents with <span className="text-blue-700">evidence</span>, not assumptions.
           </h1>
           <p className="text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed">
-            Correlate custody interchange receipts with continuous IoT telemetry to reconstruct transit incidents, establish Care, Custody &amp; Control, and produce evidence-backed recovery packages.
+            Connect fragmented custody documents, shipment telemetry, and supporting evidence to reconstruct cargo incidents and produce evidence-backed responsibility assessments.
           </p>
         </div>
 
@@ -45,7 +45,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
         </div>
 
         <p className="text-xs text-slate-500 pt-1">
-          Upload any Equipment Interchange Receipt (EIR PDF/PNG) and calibrated IoT sensor CSV to initiate an automated forensic audit.
+          Our research did not identify a publicly demonstrated system that combines physical custody documents and IoT telemetry into a single incident-reconstruction workflow.
         </p>
 
         {/* 3 Value Pillars */}

@@ -33,7 +33,7 @@ class CaseService:
         document_refs: Optional[List[SourceDocumentRef]] = None,
         telemetry_ref: Optional[TelemetryRef] = None,
         actor: str = "SYSTEM",
-        initial_status: CaseStatus = CaseStatus.INGESTED,
+        initial_status: CaseStatus = CaseStatus.NEW,
         custom_case_id: Optional[str] = None
     ) -> CaseModel:
         """

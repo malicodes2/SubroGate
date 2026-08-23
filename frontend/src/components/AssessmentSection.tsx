@@ -1,12 +1,11 @@
 import React from 'react';
-import { Bot, CheckCircle2, Scale, BookOpen, ShieldCheck, DollarSign, HelpCircle } from 'lucide-react';
+import { ShieldCheck, Bot, CheckCircle2, AlertTriangle, HelpCircle, BookOpen, ChevronRight, DollarSign } from 'lucide-react';
 import { EvidenceBackedAssessment } from '../types';
 
 interface AssessmentSectionProps {
   assessment?: EvidenceBackedAssessment | Record<string, any>;
   responsibleParty?: string;
   confidence?: number;
-  modelIdentifier?: string;
 }
 
 export const AssessmentSection: React.FC<AssessmentSectionProps> = ({
@@ -17,194 +16,158 @@ export const AssessmentSection: React.FC<AssessmentSectionProps> = ({
   const partyName = assessment?.potentially_responsible_party || responsibleParty;
   const confScore = assessment?.responsibility_confidence || confidence;
 
-  const whyPoints = [
-    { label: "Earliest recorded breach", value: "17:15 UTC (+2h 45m post-origin interchange)" },
-    { label: "Origin custody transfer", value: "14:30 UTC at APM Terminals Pier 400" },
-    { label: "Sensor physical evidence", value: "4.2G shock pulse + thermal excursion to +12.4°C" },
-    { label: "Exclusive custody at breach", value: "Apex Drayage Logistics LLC (Exclusive Care, Custody & Control)" },
-    { label: "Supporting document proof", value: "Signed EIR Gate Receipt #9842 noted 'CLEAN' condition without defect exceptions" }
+  const supportingEvidence = assessment?.evidence_supporting_assessment || [
+    "Earliest recorded breach (4.2G shock pulse + +12.4°C thermal excursion) detected at 17:15 UTC.",
+    "Breach occurred exactly +2h 45m post-origin interchange.",
+    "Origin custody transfer documented at 14:30 UTC at APM Terminals Pier 400.",
+    "Exclusive Care, Custody & Control held by Apex Drayage Logistics LLC at exact time of breach.",
+    "Signed EIR Gate Receipt #9842 noted 'CLEAN' condition without defect exceptions at origin."
   ];
 
   const conflictingEvidence = assessment?.conflicting_evidence || [
-    "Carrier driver verbally alleged unit was warm prior to outgate; however, driver signed clean interchange receipt without noting exception, legally waiving pre-existing defect defenses under UIIA Section E.2."
+    "Carrier driver verbally alleged unit was warm prior to outgate; however, driver signed clean interchange receipt without noting exception, legally waiving pre-existing defect defenses."
   ];
 
-  const uncertaintyFactors = [
-    "Reefer telemetry data rate: 60-second calibrated intervals (zero missing packet gaps verified).",
-    "Pre-trip refrigeration pre-cooling logs at shipper facility verified nominal at -21.5°C."
+  const uncertainties = assessment?.uncertainties || [
+    "Refrigeration pre-cooling logs at shipper facility verified nominal, but exact compressor failure mode (mechanical vs impact-induced) requires physical inspection."
   ];
 
-  const legalFrameworks = assessment?.applicable_legal_framework || [
+  const frameworks = assessment?.applicable_legal_framework || [
     {
       framework_name: "Carmack Amendment (49 U.S.C. § 14706)",
-      governing_law_citation: "49 U.S.C. § 14706",
       key_legal_principle: "Establishes strict prima facie liability on motor carriers for loss/damage during transit upon proof of delivery in good condition at origin and damage at destination."
     },
     {
       framework_name: "Uniform Intermodal Interchange Agreement (UIIA Section E.2)",
-      governing_law_citation: "UIIA Sec. E.2",
-      key_legal_principle: "Motor carrier assumes full Care, Custody, and Control upon signing gate interchange receipt at ocean/rail terminal."
+      key_legal_principle: "Motor carrier assumes full Care, Custody, and Control upon signing gate interchange receipt at terminal."
     }
   ];
 
   const recommendedAction = assessment?.recommended_recovery_action || 
-    "Issue formal Subrogation Demand Letter to Apex Drayage Claims Dept for full claimed loss of $75,000.00 USD under 49 U.S.C. § 14706.";
+    "Issue formal Subrogation Demand Letter to Apex Drayage Claims Dept for full claimed loss under 49 U.S.C. § 14706.";
 
   return (
-    <div className="glass-card p-6 space-y-6 shadow-sm">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+    <div className="glass-card p-8 space-y-8 shadow-sm">
+      {/* Document Header */}
+      <div className="border-b-2 border-slate-900 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center shadow-xs">
-            <Bot className="w-4 h-4" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-slate-900">
-              Evidence-Backed Responsibility Assessment
-            </h2>
-            <p className="text-xs text-slate-500">
-              Deterministic evidentiary correlation and statutory liability synthesis
-            </p>
-          </div>
+          <Bot className="w-6 h-6 text-blue-700" />
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">
+            Evidence-Backed Responsibility Assessment
+          </h2>
         </div>
-
-        <span className="badge badge-green text-xs font-bold">
-          EVIDENCE GROUNDED
-        </span>
+        <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-xs font-bold uppercase tracking-widest">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          Evidence Grounded
+        </div>
       </div>
 
-      {/* Primary Conclusion Box */}
-      <div className="glass-panel p-5 border-blue-200 bg-blue-50/40 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
-        <div className="space-y-1.5">
-          <span className="text-[11px] text-blue-700 uppercase tracking-wider flex items-center gap-1.5 font-bold">
-            <ShieldCheck className="w-4 h-4" />
-            POTENTIALLY RESPONSIBLE PARTY
-          </span>
-          <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
-            {partyName}
+      <div className="space-y-8 text-sm">
+        
+        {/* Potentially Responsible Party */}
+        <section className="space-y-2">
+          <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 pb-1 flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-blue-600" />
+            Potentially Responsible Party
           </h3>
-          <p className="text-xs text-slate-600 max-w-xl leading-relaxed">
-            Physical custody held at the exact moment of shock impact and reefer compressor failure. Full prima facie case established under applicable statutes.
+          <p className="text-lg font-black text-slate-900 px-2 border-l-4 border-blue-600 bg-blue-50/50 py-2">
+            {partyName}
           </p>
-        </div>
+        </section>
 
-        {/* Confidence Gauge */}
-        <div className="glass-inset p-4 min-w-[150px] text-right shrink-0 bg-white border-slate-200 shadow-xs">
-          <span className="text-[10px] text-slate-500 block uppercase font-bold">CONFIDENCE SCORE</span>
-          <span className="text-2xl font-black text-emerald-600 block mt-0.5">
-            {Math.round(confScore * 100)}%
-          </span>
-          <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden border border-slate-200">
-            <div 
-              className="bg-emerald-500 h-full rounded-full transition-all duration-500" 
-              style={{ width: `${Math.round(confScore * 100)}%` }} 
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* WHY Section: Concise Evidentiary Statements */}
-      <div className="glass-inset p-5 rounded-lg space-y-3 bg-slate-50 border-slate-200">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-          <h4 className="font-bold text-xs text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+        {/* Confidence */}
+        <section className="space-y-2">
+          <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 pb-1 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            Why Was This Responsibility Assessment Reached?
-          </h4>
-          <span className="badge badge-green text-[10px]">5 Corroborations</span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-          {whyPoints.map((pt, idx) => (
-            <div key={idx} className="glass-panel p-3 rounded bg-white border-slate-200 shadow-xs space-y-1">
-              <span className="text-[10px] text-slate-500 block uppercase font-bold">{pt.label}:</span>
-              <strong className="text-slate-800 text-xs block leading-snug">{pt.value}</strong>
+            Confidence
+          </h3>
+          <div className="flex items-center gap-4 px-2">
+            <span className="text-2xl font-black text-emerald-600">{Math.round(confScore * 100)}%</span>
+            <div className="flex-1 max-w-xs bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${Math.round(confScore * 100)}%` }} />
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
+        </section>
 
-      {/* Grid: Conflicting Evidence & Uncertainty Scope */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+        {/* Supporting Evidence */}
+        <section className="space-y-2">
+          <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 pb-1">
+            Supporting Evidence
+          </h3>
+          <ul className="space-y-2 px-2">
+            {supportingEvidence.map((ev: string, idx: number) => (
+              <li key={idx} className="flex items-start gap-2 text-slate-700">
+                <ChevronRight className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                <span className="leading-relaxed font-medium">{ev}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
         {/* Conflicting Evidence */}
-        <div className="glass-inset p-4 rounded-lg space-y-2.5 bg-slate-50 border-slate-200">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-            <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-              <Scale className="w-4 h-4 text-amber-600" />
-              Conflicting Evidence &amp; Waived Defenses
-            </span>
-            <span className="badge badge-amber text-[10px]">Rebuttal Ready</span>
-          </div>
+        {conflictingEvidence && conflictingEvidence.length > 0 && (
+          <section className="space-y-2">
+            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 pb-1 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-500" />
+              Conflicting Evidence
+            </h3>
+            <ul className="space-y-2 px-2">
+              {conflictingEvidence.map((ev: string, idx: number) => (
+                <li key={idx} className="flex items-start gap-2 text-slate-700">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 mt-2" />
+                  <span className="leading-relaxed bg-amber-50/50 p-2 rounded border border-amber-100">{ev}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
-          <ul className="space-y-2">
-            {conflictingEvidence.map((ev: string, i: number) => (
-              <li key={i} className="glass-panel p-2.5 rounded bg-white border-slate-200 text-slate-700 leading-relaxed text-xs shadow-xs">
-                {ev}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Verification Scope */}
-        <div className="glass-inset p-4 rounded-lg space-y-2.5 bg-slate-50 border-slate-200">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-            <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+        {/* Uncertainty */}
+        {uncertainties && uncertainties.length > 0 && (
+          <section className="space-y-2">
+            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 pb-1 flex items-center gap-2">
               <HelpCircle className="w-4 h-4 text-cyan-600" />
-              Forensic Verification Scope
-            </span>
-            <span className="badge badge-cyan text-[10px]">Audited</span>
-          </div>
+              Uncertainty
+            </h3>
+            <ul className="space-y-2 px-2">
+              {uncertainties.map((unc: string, idx: number) => (
+                <li key={idx} className="flex items-start gap-2 text-slate-700">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 mt-2" />
+                  <span className="leading-relaxed">{unc}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
-          <ul className="space-y-2">
-            {uncertaintyFactors.map((u: string, i: number) => (
-              <li key={i} className="glass-panel p-2.5 rounded bg-white border-slate-200 text-slate-700 leading-relaxed text-xs shadow-xs">
-                {u}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* Statutory Legal Precedent Frameworks */}
-      <div className="glass-inset p-4 rounded-lg space-y-3 bg-slate-50 border-slate-200">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
-          <BookOpen className="w-4 h-4 text-slate-600" />
-          <span>Applicable Statutory &amp; Contractual Frameworks</span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {legalFrameworks.map((law: any, i: number) => (
-            <div key={i} className="glass-panel p-3 rounded bg-white border-slate-200 shadow-xs space-y-1">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-800">
-                <span>{law.framework_name || law.governing_law_citation}</span>
-                <span className="text-[10px] text-slate-400 font-normal">Binding Statute</span>
+        {/* Applicable Framework / Reference */}
+        <section className="space-y-3">
+          <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 pb-1 flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-slate-600" />
+            Applicable Framework / Reference
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-2">
+            {frameworks.map((fw: any, idx: number) => (
+              <div key={idx} className="bg-slate-50 border border-slate-200 p-3 rounded space-y-1">
+                <h4 className="font-bold text-slate-900 text-xs">{fw.framework_name}</h4>
+                <p className="text-slate-600 text-xs leading-relaxed">{fw.key_legal_principle}</p>
               </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
-                {law.key_legal_principle}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
+            ))}
+          </div>
+        </section>
 
-      {/* Recommended Recovery Action */}
-      <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200 flex items-start gap-3 shadow-xs">
-        <div className="w-8 h-8 rounded-lg bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-700 shrink-0">
-          <DollarSign className="w-4 h-4" />
-        </div>
-        <div className="space-y-0.5 text-xs">
-          <span className="text-[11px] text-emerald-800 font-bold uppercase tracking-wider block">
-            Recommended Recovery Action
-          </span>
-          <p className="text-slate-800 text-xs font-medium leading-relaxed">
+        {/* Recommended Next Action */}
+        <section className="space-y-2">
+          <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 pb-1 flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-emerald-600" />
+            Recommended Next Action
+          </h3>
+          <div className="px-2 py-3 bg-emerald-50 border border-emerald-200 rounded font-bold text-emerald-900 leading-relaxed shadow-xs">
             {recommendedAction}
-          </p>
-        </div>
-      </div>
+          </div>
+        </section>
 
-      {/* Strict Legal Boundary Disclaimer */}
-      <p className="text-[11px] text-slate-500 text-center leading-relaxed">
-        *Evidence-backed responsibility assessment for subrogation recovery analysis. Not a legal ruling or binding liability determination.*
-      </p>
+      </div>
     </div>
   );
 };

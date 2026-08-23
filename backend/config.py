@@ -83,9 +83,9 @@ class SubroGateSettings(BaseSettings):
         if not v or not v.strip():
             raise ValueError("SUBROGATE_GEMINI_MODEL cannot be empty.")
         clean_v = v.strip()
-        # Accept standard Gemini model IDs (e.g. gemini-2.0-flash, gemini-2.5-pro, models/gemini-2.0-flash)
+        # Accept standard Gemini model IDs (e.g. gemini-3.0-flash, gemini-3.5-pro, models/gemini-3.5-flash)
         if not (clean_v.lower().startswith("gemini-") or clean_v.lower().startswith("models/gemini-")):
-            raise ValueError(f"SUBROGATE_GEMINI_MODEL must specify an eligible Gemini model (e.g. gemini-2.0-flash, gemini-2.5-pro), received: '{v}'")
+            raise ValueError(f"SUBROGATE_GEMINI_MODEL must specify an eligible Gemini model (e.g. gemini-3.0-flash, gemini-3.5-pro), received: '{v}'")
         return clean_v
 
     @field_validator("SUBROGATE_LOG_LEVEL")

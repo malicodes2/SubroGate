@@ -30,7 +30,7 @@ _async_worker = AsyncInvestigationWorker()
 class AsyncSubmissionResponse(BaseModel):
     case_id: str = Field(..., description="Unique persistent dispute case ID")
     job_id: str = Field(..., description="Asynchronous background job ID")
-    status: str = Field(default="PROCESSING", description="Current execution status")
+    status: str = Field(default="ANALYZING", description="Current execution status")
     idempotency_key: str = Field(..., description="Deduplication fingerprint")
     is_duplicate: bool = Field(default=False, description="True if payload matched existing event")
     message: str = Field(..., description="Status summary message")
@@ -70,7 +70,7 @@ def assess_dispute_json(payload: DisputeInvestigationRequest) -> DisputeInvestig
             ingestion_mode="JSON_DIRECT"
         ),
         actor="USER",
-        initial_status=CaseStatus.PROCESSING
+        initial_status=CaseStatus.ANALYZING
     )
     saved_case = _case_service.attach_investigation_result(
         case_id=case.case_id,
@@ -172,7 +172,7 @@ async def assess_dispute_multipart(
             ingestion_mode="MULTIPART_UPLOAD"
         ),
         actor="USER",
-        initial_status=CaseStatus.PROCESSING
+        initial_status=CaseStatus.ANALYZING
     )
     saved_case = _case_service.attach_investigation_result(
         case_id=case.case_id,
@@ -222,7 +222,7 @@ def submit_investigation_async(
 ) -> AsyncSubmissionResponse:
     """
     Submits an investigation for genuine asynchronous background execution.
-    Returns immediately with status 'PROCESSING' and tracking details while the backend continues.
+    Returns immediately with status 'ANALYZING' and tracking details while the backend continues.
     """
     if not payload.telemetry_csv or not payload.telemetry_csv.strip():
         raise HTTPException(status_code=400, detail="Telemetry CSV data cannot be empty.")
@@ -238,7 +238,7 @@ def submit_investigation_async(
     return AsyncSubmissionResponse(
         case_id=case.case_id,
         job_id=job.job_id,
-        status="COMPLETED" if case.status.value == "ASSESSMENT_READY" else "PROCESSING",
+        status="COMPLETED" if case.status.value == "ASSESSMENT_READY" else "ANALYZING",
         idempotency_key=job.idempotency_key,
         is_duplicate=is_dup,
         message=msg,
@@ -285,7 +285,7 @@ def simulate_telemetry_event(
     return AsyncSubmissionResponse(
         case_id=case.case_id,
         job_id=job.job_id,
-        status="COMPLETED" if case.status.value == "ASSESSMENT_READY" else "PROCESSING",
+        status="COMPLETED" if case.status.value == "ASSESSMENT_READY" else "ANALYZING",
         idempotency_key=job.idempotency_key,
         is_duplicate=is_dup,
         message=msg,

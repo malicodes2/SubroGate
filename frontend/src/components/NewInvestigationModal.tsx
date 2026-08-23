@@ -296,7 +296,7 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                       setContainerId(e.target.value);
                       if (errorMsg) setErrorMsg(null);
                     }}
-                    placeholder="e.g. MSKU9082345"
+                    placeholder="e.g. ABCD1234567"
                     className={`w-full ${!step1Validation.idValid && containerId ? 'border-red-400 bg-red-50' : ''}`}
                   />
                   {!step1Validation.idValid && containerId && (
