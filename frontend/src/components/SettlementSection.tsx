@@ -182,7 +182,7 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
                 The Recovery Agent will dispatch the formal demand package to the carrier and enter a persistent, background monitoring state. It will automatically wake up and resume the state machine when the carrier responds.
               </p>
 
-              {!isDispatchingInitial ? (
+              {caseStatus === 'APPROVED' && !isDispatchingInitial ? (
                 <button
                   onClick={handleDispatchInitialDemand}
                   className="btn-primary mt-4 py-3 px-6 shadow-md"
@@ -193,7 +193,7 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
               ) : (
                 <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg flex items-center gap-3 text-blue-800 text-sm mt-4">
                   <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                  <strong>Agent active:</strong> Monitoring designated webhook for carrier response...
+                  <strong>Agent active:</strong> {isSimulatingResponse ? 'Simulating carrier objection...' : 'Monitoring designated webhook for carrier response...'}
                 </div>
               )}
 
