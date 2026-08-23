@@ -15,6 +15,13 @@
 
 ---
 
+## 🌐 Live Demo & Services Health
+
+- **Live Application**: [https://subrogate-backend-zt4kq6xyiq-uc.a.run.app/](https://subrogate-backend-zt4kq6xyiq-uc.a.run.app/)
+- **System Health & API Check**: [https://subrogate-backend-zt4kq6xyiq-uc.a.run.app/api/health](https://subrogate-backend-zt4kq6xyiq-uc.a.run.app/api/health) *(Validates active connections to Vertex AI, Gemini 3.5, and Firestore)*
+
+---
+
 ## 🛑 Problem
 
 Cargo loss, spoilage, and physical transit damage account for billions in disputed freight claims annually across multimodal shipping lanes. Today, subrogation adjusters face critical operational bottlenecks:
@@ -63,7 +70,7 @@ flowchart LR
 ```mermaid
 flowchart TD
     subgraph ClientLayer ["Client Layer"]
-        A["React / TypeScript SPA\n(Hosted on GitHub Pages)"]
+        A["React / TypeScript SPA\n(Unified deployment on Cloud Run)"]
     end
 
     subgraph BackendCloudRun ["Google Cloud Run (Managed Backend Container)"]
@@ -187,10 +194,8 @@ gcloud config set project YOUR_PROJECT_ID
 # (or scripts\deploy_cloud_run.bat on Windows)
 ```
 
-### 2. Frontend (GitHub Pages)
-1. In your GitHub repository, go to **Settings ➔ Secrets and variables ➔ Actions**.
-2. Add secret `VITE_API_BASE_URL`: `https://subrogate-backend-xxx.a.run.app`.
-3. Push to `main` (or run `.github/workflows/deploy.yml`).
+### 2. Frontend
+The React SPA is automatically bundled into the `frontend/dist` directory and mounted statically by the FastAPI backend. A single deployment to Google Cloud Run serves both the API and the user interface seamlessly!
 
 ---
 
