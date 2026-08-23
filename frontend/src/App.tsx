@@ -44,25 +44,28 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen text-slate-900 flex font-sans selection:bg-blue-600 selection:text-white">
-      {/* Sidebar for persistent case history */}
-      <Sidebar 
-        onNewInvestigation={() => setIsNewModalOpen(true)} 
-        refreshTrigger={refreshSidebar} 
+    <div className="min-h-screen text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+      
+      {/* Top Navigation */}
+      <Navbar
+        modelInfo={healthData?.model}
+        isConnected={!error && healthData !== null}
+        onRefresh={initApp}
+        onNewInvestigation={() => setIsNewModalOpen(true)}
+        isLoading={isLoading}
+        isLiveMode={isLiveAuth}
       />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50">
-        <Navbar
-          modelInfo={healthData?.model}
-          isConnected={!error && healthData !== null}
-          onRefresh={initApp}
-          onNewInvestigation={() => setIsNewModalOpen(true)}
-          isLoading={isLoading}
-          isLiveMode={isLiveAuth}
+      {/* Main Layout Area */}
+      <div className="flex-1 flex overflow-hidden bg-slate-50">
+        {/* Sidebar for persistent case history */}
+        <Sidebar 
+          onNewInvestigation={() => setIsNewModalOpen(true)} 
+          refreshTrigger={refreshSidebar} 
         />
 
-        <main className="flex-1 overflow-y-auto w-full px-4 sm:px-6 py-6 custom-scrollbar">
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto w-full px-4 sm:px-6 py-6 custom-scrollbar relative">
           <Routes>
             <Route path="/" element={
               <div className="max-w-7xl mx-auto mt-12">

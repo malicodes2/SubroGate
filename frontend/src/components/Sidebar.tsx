@@ -75,41 +75,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div className="w-64 bg-slate-900 text-slate-300 flex flex-col h-screen border-r border-slate-800 shrink-0">
-      {/* Header */}
-      <div className="p-4 border-b border-slate-800 bg-slate-900/50">
-        <div className="flex items-center gap-3">
-          <img 
-            src={logoImg} 
-            alt="SubroGate Logo" 
-            className="h-8 object-contain select-none"
-          />
-          <span className="font-heading font-bold text-lg text-white tracking-wide">SubroGate</span>
-        </div>
-      </div>
-
+    <div className="w-64 bg-white text-slate-700 flex flex-col h-full border-r border-slate-200 shrink-0">
       {/* Search */}
-      <div className="p-4 border-b border-slate-800 bg-slate-900/30">
+      <div className="p-4 border-b border-slate-200 bg-slate-50/50">
         <div className="relative">
-          <Search className="w-4 h-4 absolute left-2.5 top-2.5 text-slate-500" />
+          <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
           <input
             type="text"
             placeholder="Search cases..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-800 border border-slate-700 rounded-md py-1.5 pl-8 pr-3 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+            className="w-full bg-white border border-slate-200 rounded-md py-1.5 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-sm"
           />
         </div>
       </div>
 
       {/* Case List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
-        <div className="px-2 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
+        <div className="px-2 pb-2 pt-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
           Recent Cases
         </div>
         
         {isLoading ? (
-          <div className="flex items-center justify-center p-4 text-slate-500">
+          <div className="flex items-center justify-center p-4 text-slate-400">
             <Loader2 className="w-5 h-5 animate-spin" />
           </div>
         ) : filteredCases.length === 0 ? (
@@ -123,38 +111,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={c.case_id}
                 to={`/cases/${c.case_id}`}
                 className={({ isActive: isNavLinkActive }) => `
-                  block p-2.5 rounded-lg border transition-all text-left w-full group
+                  block p-3 rounded-lg border transition-all text-left w-full group mb-1.5
                   ${isNavLinkActive 
-                    ? 'bg-blue-900/40 border-blue-700/50 text-blue-100 shadow-sm' 
-                    : 'bg-transparent border-transparent text-slate-400 hover:bg-slate-800 hover:text-slate-200 hover:border-slate-700'
+                    ? 'bg-blue-50 border-blue-200 shadow-sm' 
+                    : 'bg-white border-transparent text-slate-600 hover:bg-slate-50 hover:border-slate-200'
                   }
                 `}
               >
                 {({ isActive: isNavLinkActive }) => (
                   <>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className={`font-mono text-xs font-bold ${isNavLinkActive ? 'text-blue-300' : 'text-slate-300 group-hover:text-white'}`}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className={`font-mono text-xs font-bold ${isNavLinkActive ? 'text-blue-700' : 'text-slate-700'}`}>
                         {c.case_id.split('-').slice(0, 2).join('-')}
-                        <span className="opacity-50">-{c.case_id.split('-').slice(2).join('-')}</span>
+                        <span className="opacity-40">-{c.case_id.split('-').slice(2).join('-')}</span>
                       </span>
                       {getStatusIcon(c.status)}
                     </div>
                     
-                    <div className="text-xs truncate font-medium mb-1">
+                    <div className={`text-xs truncate font-medium mb-2 ${isNavLinkActive ? 'text-slate-800' : 'text-slate-600'}`}>
                       {c.shipment_info?.commodity || 'Unknown Cargo'}
                     </div>
                     
                     <div className="flex items-center justify-between text-[10px]">
-                      <span className={`px-1.5 py-0.5 rounded font-mono ${
-                        c.status === 'APPROVED' ? 'bg-emerald-900/30 text-emerald-400' :
-                        c.status === 'FAILED' ? 'bg-red-900/30 text-red-400' :
-                        c.status === 'ANALYZING' ? 'bg-blue-900/30 text-blue-400' :
-                        'bg-slate-800 text-slate-400'
+                      <span className={`px-1.5 py-0.5 rounded font-mono font-medium ${
+                        c.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' :
+                        c.status === 'FAILED' ? 'bg-red-100 text-red-700' :
+                        c.status === 'ANALYZING' ? 'bg-blue-100 text-blue-700' :
+                        'bg-slate-100 text-slate-600'
                       }`}>
                         {getStatusDisplay(c.status)}
                       </span>
                       
-                      <span className="text-slate-500">
+                      <span className="text-slate-400 font-medium">
                         {new Date(c.updated_at_utc).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
                     </div>
@@ -167,7 +155,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-slate-800 text-[10px] text-center text-slate-500 font-mono">
+      <div className="p-4 border-t border-slate-200 bg-slate-50/50 text-[10px] text-center text-slate-400 font-mono">
         SubroGate v2.0 <br/>
         Persistent Case Workspace
       </div>
