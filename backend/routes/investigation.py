@@ -67,7 +67,22 @@ def assess_dispute_json(payload: DisputeInvestigationRequest) -> DisputeInvestig
         telemetry_ref=TelemetryRef(
             file_name="telemetry.csv",
             sample_count=len(inv_response.normalized_telemetry.readings) if inv_response.normalized_telemetry else 120,
-            ingestion_mode="JSON_DIRECT"
+            ingestion_mode="JSON_DIRECT",
+            points=[
+                {
+                    "time": r.timestamp_utc.strftime("%H:%M") if r.timestamp_utc else "",
+                    "temp": round(r.temperature_c, 1) if r.temperature_c is not None else 0.0,
+                    "shock": round(r.shock_g, 2) if r.shock_g is not None else 0.0,
+                    "humidity": 0.0,
+                    "custody": "Unknown",
+                    "isBreach": False
+                }
+                for r in (inv_response.normalized_telemetry.readings if inv_response.normalized_telemetry else [])
+                if r.temperature_c is not None or r.shock_g is not None
+            ],
+            peak_shock_g=max([b.peak_value for b in inv_response.normalized_telemetry.breaches if "SHOCK" in b.breach_type.value] + [0.0]) if inv_response.normalized_telemetry else 0.0,
+            peak_temp_c=max([b.peak_value for b in inv_response.normalized_telemetry.breaches if "TEMP" in b.breach_type.value] + [0.0]) if inv_response.normalized_telemetry else 0.0,
+            breach_custodian=inv_response.assessment.potentially_liable_party.entity_name if inv_response.assessment and inv_response.assessment.potentially_liable_party else "N/A"
         ),
         actor="USER",
         initial_status=CaseStatus.ANALYZING
@@ -169,7 +184,22 @@ async def assess_dispute_multipart(
         telemetry_ref=TelemetryRef(
             file_name=telemetry_file.filename or "telemetry.csv",
             sample_count=len(inv_response.normalized_telemetry.readings) if inv_response.normalized_telemetry else 120,
-            ingestion_mode="MULTIPART_UPLOAD"
+            ingestion_mode="MULTIPART_UPLOAD",
+            points=[
+                {
+                    "time": r.timestamp_utc.strftime("%H:%M") if r.timestamp_utc else "",
+                    "temp": round(r.temperature_c, 1) if r.temperature_c is not None else 0.0,
+                    "shock": round(r.shock_g, 2) if r.shock_g is not None else 0.0,
+                    "humidity": 0.0,
+                    "custody": "Unknown",
+                    "isBreach": False
+                }
+                for r in (inv_response.normalized_telemetry.readings if inv_response.normalized_telemetry else [])
+                if r.temperature_c is not None or r.shock_g is not None
+            ],
+            peak_shock_g=max([b.peak_value for b in inv_response.normalized_telemetry.breaches if "SHOCK" in b.breach_type.value] + [0.0]) if inv_response.normalized_telemetry else 0.0,
+            peak_temp_c=max([b.peak_value for b in inv_response.normalized_telemetry.breaches if "TEMP" in b.breach_type.value] + [0.0]) if inv_response.normalized_telemetry else 0.0,
+            breach_custodian=inv_response.assessment.potentially_liable_party.entity_name if inv_response.assessment and inv_response.assessment.potentially_liable_party else "N/A"
         ),
         actor="USER",
         initial_status=CaseStatus.ANALYZING

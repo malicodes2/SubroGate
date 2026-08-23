@@ -52,6 +52,13 @@ class TelemetryRef(BaseModel):
     latest_reading_utc: Optional[datetime] = Field(None, description="Last sensor reading timestamp")
     has_critical_shock: bool = Field(default=False, description="True if high-G shock violation detected")
     has_temp_excursion: bool = Field(default=False, description="True if reefer temperature excursion detected")
+    file_name: Optional[str] = Field(None, description="Uploaded file name")
+    sample_count: int = Field(default=0, description="Number of samples")
+    ingestion_mode: Optional[str] = Field(None, description="How the telemetry was ingested")
+    peak_shock_g: Optional[float] = Field(None, description="Max shock recorded")
+    peak_temp_c: Optional[float] = Field(None, description="Max temp excursion")
+    breach_custodian: Optional[str] = Field(None, description="Custodian at time of breach")
+    points: List[Dict[str, Any]] = Field(default_factory=list, description="Downsampled points for rendering")
 
 
 class HumanApprovalEvent(BaseModel):
