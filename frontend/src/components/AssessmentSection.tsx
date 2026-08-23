@@ -43,7 +43,7 @@ export const AssessmentSection: React.FC<AssessmentSectionProps> = ({
     }
   ];
 
-  const recommendedAction = assessment?.recommended_recovery_action || 
+  const recommendedAction = assessment?.recommended_recovery_action ||
     "Issue formal Subrogation Demand Letter to Apex Drayage Claims Dept for full claimed loss under 49 U.S.C. § 14706.";
 
   return (
@@ -63,7 +63,7 @@ export const AssessmentSection: React.FC<AssessmentSectionProps> = ({
       </div>
 
       <div className="space-y-8 text-sm">
-        
+
         {/* Potentially Responsible Party */}
         <section className="space-y-2">
           <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 pb-1 flex items-center gap-2">

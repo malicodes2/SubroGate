@@ -64,13 +64,13 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
     const idTrim = containerId.trim();
     const idValid = idTrim.length >= 4;
     const isIsoFormat = /^[A-Z]{3}[UJZ]\d{6,7}$/i.test(idTrim);
-    const commodityValid = commodity.trim().length > 0;
+    const commodityValid = commodity.trim().length >= 2;
     const decVal = Number(declaredValue);
     const declaredValid = !isNaN(decVal) && decVal > 0;
     const claimVal = Number(claimedLoss);
     const lossValid = !isNaN(claimVal) && claimVal > 0;
     const lossExceedsDeclared = declaredValid && lossValid && claimVal > decVal;
-    const carrierValid = carrierName.trim().length > 0;
+    const carrierValid = carrierName.trim().length >= 2;
 
     const isValid = idValid && commodityValid && declaredValid && lossValid && !lossExceedsDeclared && carrierValid;
 
@@ -297,6 +297,8 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                       if (errorMsg) setErrorMsg(null);
                     }}
                     placeholder="e.g. ABCD1234567"
+                    minLength={4}
+                    maxLength={20}
                     className={`w-full ${!step1Validation.idValid && containerId ? 'border-red-400 bg-red-50' : ''}`}
                   />
                   {!step1Validation.idValid && containerId && (
@@ -319,6 +321,8 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                       if (errorMsg) setErrorMsg(null);
                     }}
                     placeholder="e.g. Frozen Pharmaceutical Vaccines"
+                    minLength={2}
+                    maxLength={50}
                     className={`w-full ${!step1Validation.commodityValid && commodity ? 'border-red-400 bg-red-50' : ''}`}
                   />
                 </div>
@@ -374,6 +378,7 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                     value={originFacility}
                     onChange={(e) => setOriginFacility(e.target.value)}
                     placeholder="e.g. APM Terminals Pier 400 Los Angeles, CA"
+                    maxLength={50}
                   />
                 </div>
 
@@ -387,6 +392,7 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                     value={destinationFacility}
                     onChange={(e) => setDestinationFacility(e.target.value)}
                     placeholder="e.g. Midwest Health Distribution Chicago, IL"
+                    maxLength={50}
                   />
                 </div>
 
@@ -403,6 +409,8 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                       if (errorMsg) setErrorMsg(null);
                     }}
                     placeholder="e.g. Apex Drayage Logistics LLC"
+                    minLength={2}
+                    maxLength={50}
                     className={`w-full ${!step1Validation.carrierValid && carrierName ? 'border-red-400 bg-red-50' : ''}`}
                   />
                 </div>
@@ -417,6 +425,7 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                     value={consigneeName}
                     onChange={(e) => setConsigneeName(e.target.value)}
                     placeholder="e.g. Midwest Cold Chain Medical Inc."
+                    maxLength={50}
                   />
                 </div>
               </div>

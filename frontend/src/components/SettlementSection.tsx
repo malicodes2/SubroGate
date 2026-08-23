@@ -40,7 +40,7 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
       // Since we can't easily mock backend state here without an endpoint, we'll fetch a mock inbound message immediately to enter NEGOTIATION.
       // Or we can just use the generateCarrierObjectionSample to get the message.
       setStatusMessage('Initial demand dispatched. Agent entering persistent monitor mode.');
-      
+
       // MOCK: Auto-receive response after 2 seconds to simulate async
       setTimeout(() => {
         handleReceiveResponse();
@@ -62,7 +62,7 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
       const msg = await apiClient.generateCarrierObjectionSample(caseId, 'DAMAGE_BEFORE_PICKUP');
       setInboundMessage(msg);
       setOutboundDraft(null);
-      
+
       // Auto-draft the response
       await handleDraftResponse(msg);
     } catch (e: any) {
@@ -126,11 +126,10 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-xs ${
-            isUnlocked 
-              ? 'bg-blue-50 border border-blue-200 text-blue-700' 
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-xs ${isUnlocked
+              ? 'bg-blue-50 border border-blue-200 text-blue-700'
               : 'bg-slate-100 border border-slate-200 text-slate-400'
-          }`}>
+            }`}>
             <Scale className="w-5 h-5" />
           </div>
           <div>
@@ -174,41 +173,41 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
       {/* UNLOCKED WORKFLOW */}
       {isUnlocked && (
         <div className="space-y-6">
-          
+
           {/* State 1: Initial Dispatch */}
           {!inboundMessage && (
             <div className="glass-inset p-8 text-center rounded-lg space-y-4 bg-slate-50 border-slate-200 flex flex-col items-center">
-               <div className="w-12 h-12 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center mb-2">
-                 <Send className="w-5 h-5" />
-               </div>
-               <h3 className="font-bold text-lg text-slate-900">Initiate Persistent Recovery Agent</h3>
-               <p className="text-sm text-slate-600 max-w-lg leading-relaxed">
-                 The Recovery Agent will dispatch the formal demand package to the carrier and enter a persistent, background monitoring state. It will automatically wake up and resume the state machine when the carrier responds.
-               </p>
-               
-               {!isDispatchingInitial ? (
-                 <button
-                   onClick={handleDispatchInitialDemand}
-                   className="btn-primary mt-4 py-3 px-6 shadow-md"
-                 >
-                   <Sparkles className="w-4 h-4 mr-2" />
-                   Dispatch Demand &amp; Start Agent Monitor
-                 </button>
-               ) : (
-                 <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg flex items-center gap-3 text-blue-800 text-sm mt-4">
-                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                    <strong>Agent active:</strong> Monitoring designated webhook for carrier response...
-                 </div>
-               )}
+              <div className="w-12 h-12 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center mb-2">
+                <Send className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-lg text-slate-900">Initiate Persistent Recovery Agent</h3>
+              <p className="text-sm text-slate-600 max-w-lg leading-relaxed">
+                The Recovery Agent will dispatch the formal demand package to the carrier and enter a persistent, background monitoring state. It will automatically wake up and resume the state machine when the carrier responds.
+              </p>
 
-               {/* Hidden trigger for hackathon demo to mock a response arriving */}
-               {isDispatchingInitial && (
-                 <div className="pt-4 mt-4 border-t border-slate-200 w-full flex justify-center">
-                    <button onClick={handleReceiveResponse} className="text-[10px] text-slate-400 hover:text-slate-600 underline">
-                      [Demo: Force trigger inbound carrier webhook]
-                    </button>
-                 </div>
-               )}
+              {!isDispatchingInitial ? (
+                <button
+                  onClick={handleDispatchInitialDemand}
+                  className="btn-primary mt-4 py-3 px-6 shadow-md"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Dispatch Demand &amp; Start Agent Monitor
+                </button>
+              ) : (
+                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg flex items-center gap-3 text-blue-800 text-sm mt-4">
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                  <strong>Agent active:</strong> Monitoring designated webhook for carrier response...
+                </div>
+              )}
+
+              {/* Hidden trigger for hackathon demo to mock a response arriving */}
+              {isDispatchingInitial && (
+                <div className="pt-4 mt-4 border-t border-slate-200 w-full flex justify-center">
+                  <button onClick={handleReceiveResponse} className="text-[10px] text-slate-400 hover:text-slate-600 underline">
+                    [Demo: Force trigger inbound carrier webhook]
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -218,7 +217,7 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
               <div className="absolute -left-[17px] top-4 w-8 h-8 rounded-full bg-blue-500 border-4 border-white flex items-center justify-center shadow-sm">
                 <Mail className="w-3 h-3 text-white" />
               </div>
-              
+
               <div className="glass-inset p-5 rounded-lg space-y-3 bg-slate-50 border-slate-200 shadow-sm">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-200 text-xs">
                   <div className="flex items-center gap-2">
@@ -234,17 +233,17 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
                 </div>
 
                 <div className="flex items-center pt-2">
-                   {isDrafting ? (
-                     <div className="flex items-center gap-2 text-sm text-blue-700 font-bold">
-                       <Loader2 className="w-4 h-4 animate-spin" />
-                       Agent formulating evidentiary rebuttal...
-                     </div>
-                   ) : (
-                     <div className="flex items-center gap-2 text-sm text-emerald-700 font-bold">
-                       <CheckCircle2 className="w-4 h-4" />
-                       Rebuttal formulated from timeline evidence.
-                     </div>
-                   )}
+                  {isDrafting ? (
+                    <div className="flex items-center gap-2 text-sm text-blue-700 font-bold">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Agent formulating evidentiary rebuttal...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm text-emerald-700 font-bold">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Rebuttal formulated from timeline evidence.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -253,19 +252,18 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
           {/* State 3: Outbound Draft & Security Gate */}
           {outboundDraft && !isDrafting && (
             <div className="space-y-4 pt-4 border-t border-slate-200">
-              
+
               <div className="flex items-center gap-2 mb-2">
-                 <h3 className="font-bold text-slate-900 uppercase tracking-widest text-sm">Agent Prepared Rebuttal</h3>
+                <h3 className="font-bold text-slate-900 uppercase tracking-widest text-sm">Agent Prepared Rebuttal</h3>
               </div>
 
               {/* Security Screening Gate Banner */}
-              <div className={`p-4 rounded-lg border flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs ${
-                outboundDraft.security_report?.verdict === 'BLOCK'
+              <div className={`p-4 rounded-lg border flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs ${outboundDraft.security_report?.verdict === 'BLOCK'
                   ? 'bg-red-50 border-red-300 text-red-900'
                   : outboundDraft.security_report?.verdict === 'REVIEW'
-                  ? 'bg-amber-50 border-amber-300 text-amber-900'
-                  : 'bg-emerald-50 border-emerald-300 text-emerald-900'
-              }`}>
+                    ? 'bg-amber-50 border-amber-300 text-amber-900'
+                    : 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                }`}>
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-lg bg-white border border-slate-200 shrink-0 mt-0.5 shadow-xs">
                     {outboundDraft.security_report?.verdict === 'BLOCK' ? (
@@ -357,8 +355,8 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
                     <button
                       type="button"
                       onClick={() => {
-                         setOutboundDraft(null);
-                         setInboundMessage(null);
+                        setOutboundDraft(null);
+                        setInboundMessage(null);
                       }}
                       className="btn-secondary text-xs border-red-300 text-red-700 hover:bg-red-50"
                     >
