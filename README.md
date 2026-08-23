@@ -17,8 +17,8 @@
 
 ## 🌐 Live Demo & Services Health
 
-- **Live Application (GitHub Pages)**: [https://malicodes2.github.io/SubroGate/](https://malicodes2.github.io/SubroGate/)
-- **System Health & API Check (Cloud Run)**: [https://subrogate-backend-zt4kq6xyiq-uc.a.run.app/api/health](https://subrogate-backend-zt4kq6xyiq-uc.a.run.app/api/health) *(Validates active connections to Vertex AI, Gemini 3.5, and Firestore)*
+- **Live Application**: [https://subrogate-backend-zt4kq6xyiq-uc.a.run.app/](https://subrogate-backend-zt4kq6xyiq-uc.a.run.app/)
+- **System Health & API Check**: [https://subrogate-backend-zt4kq6xyiq-uc.a.run.app/api/health](https://subrogate-backend-zt4kq6xyiq-uc.a.run.app/api/health) *(Validates active connections to Vertex AI, Gemini 3.5, and Firestore)*
 
 ---
 
@@ -177,7 +177,7 @@ The frontend will be available at `http://localhost:5173` and proxy API calls to
 | `GOOGLE_CLOUD_PROJECT` | *(None)* | GCP Project ID (for Vertex AI & Firestore on Cloud Run). |
 | `GOOGLE_CLOUD_LOCATION`| `us-central1` | GCP region for Vertex AI. |
 | `SUBROGATE_USE_VERTEX` | `true` | Route through Vertex AI (Google ADK). |
-| `CORS_ORIGINS` | `https://malicodes2.github.io,http://localhost:5173` | Allowed CORS origins (comma-separated). |
+| `CORS_ORIGINS` | `http://localhost:5173` | Allowed CORS origins (comma-separated). |
 
 ---
 
@@ -194,8 +194,10 @@ gcloud config set project YOUR_PROJECT_ID
 # (or scripts\deploy_cloud_run.bat on Windows)
 ```
 
-### 2. Frontend
-The React SPA is automatically bundled into the `frontend/dist` directory and mounted statically by the FastAPI backend. A single deployment to Google Cloud Run serves both the API and the user interface seamlessly!
+### 2. Frontend (GitHub Pages)
+1. In your GitHub repository, go to **Settings ➔ Secrets and variables ➔ Actions**.
+2. Add secret `VITE_API_BASE_URL`: `https://subrogate-backend-zt4kq6xyiq-uc.a.run.app`.
+3. Push to `main` to trigger the GitHub Actions deployment workflow.
 
 ---
 

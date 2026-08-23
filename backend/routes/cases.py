@@ -200,6 +200,71 @@ def retry_case_processing(
         raise HTTPException(status_code=500, detail=f"Retry failed: {str(e)}")
 
 
+@router.post("/{case_id}/reanalyze", response_model=CaseModel)
+def reanalyze_case(
+    case_id: str,
+    corrections: Dict[str, Any] = Body(...)
+) -> CaseModel:
+    """
+    Reanalyzes the timeline and assessment based on human corrections to extracted data.
+    """
+    case = _case_service.get_case(case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail=f"Case {case_id} not found.")
+
+    extracted = case.extracted_custody_events or {}
+    new_timestamp_str = corrections.get("handover_timestamp_utc")
+
+    # Update human corrections
+    case.human_corrections = corrections
+    case.status = CaseStatus.ASSESSMENT_READY
+    
+    if new_timestamp_str and case.normalized_timeline:
+        try:
+            from datetime import datetime
+            new_dt = datetime.fromisoformat(new_timestamp_str.replace("Z", "+00:00"))
+            
+            # Find and update EIR handover event
+            breach_dt = None
+            for event in case.normalized_timeline:
+                if event.get("event_type") == "EIR_HANDOVER":
+                    event["timestamp_utc"] = new_timestamp_str
+                if event.get("is_breach") or event.get("event_type") == "TELEMETRY_BREACH":
+                    ts_str = event.get("timestamp_utc")
+                    if ts_str:
+                        breach_dt = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+            
+            # Recalculate assessment based on new timeline
+            if breach_dt and case.assessment:
+                if breach_dt < new_dt:
+                    case.assessment["potentially_responsible_party"] = case.shipment_info.shipper_name or "Origin Shipper"
+                    case.assessment["evidence_supporting_assessment"] = [
+                        f"Human override established handover at {new_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}.",
+                        f"Breach occurred at {breach_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}, which is BEFORE handover.",
+                        "Custody resided with releasing party."
+                    ]
+                else:
+                    case.assessment["potentially_responsible_party"] = case.shipment_info.carrier_name or "Apex Drayage Logistics LLC"
+                    case.assessment["evidence_supporting_assessment"] = [
+                        f"Human override established handover at {new_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}.",
+                        f"Breach occurred at {breach_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}, which is AFTER handover.",
+                        "Custody resided with receiving carrier."
+                    ]
+        except Exception as e:
+            print("Error parsing timestamp:", e)
+
+    updated_case = _case_service.repository.update(
+        case_id=case.case_id,
+        updates={
+            "human_corrections": case.human_corrections,
+            "normalized_timeline": case.normalized_timeline,
+            "assessment": case.assessment,
+            "status": case.status
+        }
+    )
+    return updated_case
+
+
 @router.post("/demo/load-clean", response_model=CaseModel)
 def load_demo_clean_case() -> CaseModel:
     """

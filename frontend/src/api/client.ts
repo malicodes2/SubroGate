@@ -58,6 +58,10 @@ class ApiClient {
   // CASE MANAGEMENT & DEMO CONTROLS
   // ============================================================================
 
+  async listCases(): Promise<CaseModel[]> {
+    return this.request<CaseModel[]>('/api/cases');
+  }
+
   async getCase(caseId: string): Promise<CaseModel> {
     return this.request<CaseModel>(`/api/cases/${caseId}`);
   }
@@ -80,6 +84,23 @@ class ApiClient {
       body: JSON.stringify({
         approval,
         actor: approval.adjuster_name,
+        expected_version: expectedVersion
+      })
+    });
+  }
+
+  async reanalyzeCase(caseId: string, corrections: Record<string, any>): Promise<CaseModel> {
+    return this.request<CaseModel>(`/api/cases/${caseId}/reanalyze`, {
+      method: 'POST',
+      body: JSON.stringify(corrections)
+    });
+  }
+
+  async transitionCaseStatus(caseId: string, newStatus: string, expectedVersion?: number): Promise<CaseModel> {
+    return this.request<CaseModel>(`/api/cases/${caseId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        new_status: newStatus,
         expected_version: expectedVersion
       })
     });

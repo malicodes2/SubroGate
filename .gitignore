@@ -14,6 +14,7 @@ credentials.json
 
 # Private Demo & Development Artifacts
 private-demo/
+demo_data/
 demo-recordings/
 recordings/
 screenshots/

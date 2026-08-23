@@ -8,12 +8,14 @@ interface EvidenceSectionProps {
   containerId?: string;
   eirData?: Record<string, any>;
   telemetryRef?: Record<string, any>;
+  onReanalyze?: (corrections: Record<string, any>) => Promise<void>;
 }
 
 export const EvidenceSection: React.FC<EvidenceSectionProps> = ({
   containerId = '',
   eirData,
-  telemetryRef
+  telemetryRef,
+  onReanalyze
 }) => {
   const [activeView, setActiveView] = useState<'combined' | 'document' | 'telemetry'>('combined');
 
@@ -81,12 +83,13 @@ export const EvidenceSection: React.FC<EvidenceSectionProps> = ({
           containerId={containerId}
           eirData={eirData}
           telemetryRef={telemetryRef}
+          onReanalyze={onReanalyze}
         />
       )}
 
       {activeView === 'document' && (
         <div className="h-[580px]">
-          <DocumentViewer containerId={containerId} eirData={eirData} />
+          <DocumentViewer containerId={containerId} eirData={eirData} onReanalyze={onReanalyze} />
         </div>
       )}
 

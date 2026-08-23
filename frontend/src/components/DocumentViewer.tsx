@@ -4,11 +4,13 @@ import { FileText } from 'lucide-react';
 interface DocumentViewerProps {
   containerId?: string;
   eirData?: Record<string, any>;
+  onReanalyze?: (corrections: Record<string, any>) => Promise<void>;
 }
 
 export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   containerId = 'N/A',
-  eirData
+  eirData,
+  onReanalyze
 }) => {
   const gateEvent = eirData?.gate_event_type || 'N/A';
   const handoverTime = eirData?.raw_timestamp_str || 'N/A';
@@ -26,7 +28,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-blue-600" />
           <span className="font-bold text-slate-800">
-            APM_Pier400_GateReceipt_{containerId}.pdf
+            {eirData?.filename || `GateReceipt_${containerId}.pdf`}
           </span>
         </div>
 
@@ -48,10 +50,10 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
           <div className="border-b-2 border-[#334155] pb-3 mb-4 flex items-start justify-between">
             <div>
               <h3 className="text-base font-black tracking-tight text-[#0F172A] uppercase font-sans">
-                APM TERMINALS PACIFIC
+                {issuingFacility.toUpperCase()}
               </h3>
               <p className="text-[10px] text-[#475569] font-sans font-medium">
-                Pier 400 Los Angeles, CA 90731 • Gate Interchange Receipt (EIR)
+                {eirData?.facility_location || 'Intermodal Interchange Terminal'} • Gate Interchange Receipt (EIR)
               </p>
               <p className="text-[9px] text-[#64748B]">TOS GATE TRANSACTION ID: TXN-2026-0815-98420</p>
             </div>

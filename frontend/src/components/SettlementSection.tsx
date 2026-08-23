@@ -33,15 +33,11 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
   const handleDispatchInitialDemand = async () => {
     try {
       setIsDispatchingInitial(true);
-      // In a real app this would call the backend to send the initial demand and update state to AWAITING_RESPONSE
-      // For this hackathon demo, we'll simulate the state transition.
-      // We will pretend the API updates the status.
-      // (This requires a backend update endpoint or we just set local state, but we need onRefreshCase to reflect it)
-      // Since we can't easily mock backend state here without an endpoint, we'll fetch a mock inbound message immediately to enter NEGOTIATION.
-      // Or we can just use the generateCarrierObjectionSample to get the message.
+      await apiClient.transitionCaseStatus(caseId, 'AWAITING_RESPONSE');
       setStatusMessage('Initial demand dispatched. Agent entering persistent monitor mode.');
+      await onRefreshCase();
 
-      // MOCK: Auto-receive response after 2 seconds to simulate async
+      // For hackathon demo, we still simulate the asynchronous nature by mocking the response after a short delay
       setTimeout(() => {
         handleReceiveResponse();
       }, 2000);
@@ -58,10 +54,11 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
     try {
       setIsSimulatingResponse(true);
       setStatusMessage(null);
-      // Simulating the webhook waking up the agent
+      await apiClient.transitionCaseStatus(caseId, 'NEGOTIATION');
       const msg = await apiClient.generateCarrierObjectionSample(caseId, 'DAMAGE_BEFORE_PICKUP');
       setInboundMessage(msg);
       setOutboundDraft(null);
+      await onRefreshCase();
 
       // Auto-draft the response
       await handleDraftResponse(msg);

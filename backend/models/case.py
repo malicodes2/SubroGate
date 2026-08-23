@@ -9,6 +9,7 @@ class CaseStatus(str, Enum):
     NEW = "NEW"
     INGESTING = "INGESTING"
     ANALYZING = "ANALYZING"
+    EXTRACTION_REVIEW = "EXTRACTION_REVIEW"
     ASSESSMENT_READY = "ASSESSMENT_READY"
     HUMAN_REVIEW = "HUMAN_REVIEW"
     APPROVED = "APPROVED"
@@ -117,6 +118,7 @@ class CaseModel(BaseModel):
     
     # Forensic Investigation Snapshots
     extracted_custody_events: Optional[Dict[str, Any]] = Field(None, description="Snapshot of extracted EIR data")
+    human_corrections: Optional[Dict[str, Any]] = Field(None, description="Human overrides for poor extractions")
     normalized_timeline: List[Dict[str, Any]] = Field(default_factory=list, description="Reconstructed chronological timeline events")
     assessment: Optional[Dict[str, Any]] = Field(None, description="Snapshot of EvidenceBackedAssessment")
     

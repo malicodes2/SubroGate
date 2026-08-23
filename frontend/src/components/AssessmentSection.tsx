@@ -13,38 +13,28 @@ export const AssessmentSection: React.FC<AssessmentSectionProps> = ({
   responsibleParty = 'Apex Drayage Logistics LLC (Motor Carrier)',
   confidence = 0.94
 }) => {
-  const partyName = assessment?.potentially_responsible_party || responsibleParty;
-  const confScore = assessment?.responsibility_confidence || confidence;
+  if (!assessment) {
+    return (
+      <div className="glass-card p-8 space-y-4 shadow-sm text-center">
+        <Bot className="w-10 h-10 text-slate-300 mx-auto" />
+        <h2 className="text-xl font-bold text-slate-400 uppercase tracking-widest">
+          Awaiting Assessment
+        </h2>
+        <p className="text-sm text-slate-500 max-w-md mx-auto">
+          The forensic investigator agent has not yet completed the responsibility assessment. If extraction requires review, please correct the handover time in the Evidence section.
+        </p>
+      </div>
+    );
+  }
 
-  const supportingEvidence = assessment?.evidence_supporting_assessment || [
-    "Earliest recorded breach (4.2G shock pulse + +12.4°C thermal excursion) detected at 17:15 UTC.",
-    "Breach occurred exactly +2h 45m post-origin interchange.",
-    "Origin custody transfer documented at 14:30 UTC at APM Terminals Pier 400.",
-    "Exclusive Care, Custody & Control held by Apex Drayage Logistics LLC at exact time of breach.",
-    "Signed EIR Gate Receipt #9842 noted 'CLEAN' condition without defect exceptions at origin."
-  ];
+  const partyName = assessment.potentially_responsible_party || responsibleParty;
+  const confScore = assessment.responsibility_confidence || confidence;
 
-  const conflictingEvidence = assessment?.conflicting_evidence || [
-    "Carrier driver verbally alleged unit was warm prior to outgate; however, driver signed clean interchange receipt without noting exception, legally waiving pre-existing defect defenses."
-  ];
-
-  const uncertainties = assessment?.uncertainties || [
-    "Refrigeration pre-cooling logs at shipper facility verified nominal, but exact compressor failure mode (mechanical vs impact-induced) requires physical inspection."
-  ];
-
-  const frameworks = assessment?.applicable_legal_framework || [
-    {
-      framework_name: "Carmack Amendment (49 U.S.C. § 14706)",
-      key_legal_principle: "Establishes strict prima facie liability on motor carriers for loss/damage during transit upon proof of delivery in good condition at origin and damage at destination."
-    },
-    {
-      framework_name: "Uniform Intermodal Interchange Agreement (UIIA Section E.2)",
-      key_legal_principle: "Motor carrier assumes full Care, Custody, and Control upon signing gate interchange receipt at terminal."
-    }
-  ];
-
-  const recommendedAction = assessment?.recommended_recovery_action ||
-    "Issue formal Subrogation Demand Letter to Apex Drayage Claims Dept for full claimed loss under 49 U.S.C. § 14706.";
+  const supportingEvidence = assessment.evidence_supporting_assessment || [];
+  const conflictingEvidence = assessment.conflicting_evidence || [];
+  const uncertainties = assessment.uncertainties || [];
+  const frameworks = assessment.applicable_legal_framework || [];
+  const recommendedAction = assessment.recommended_recovery_action || "Pending calculation of loss.";
 
   return (
     <div className="glass-card p-8 space-y-8 shadow-sm">

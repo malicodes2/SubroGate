@@ -101,6 +101,7 @@ export type CaseStatus =
   | 'NEW'
   | 'INGESTING'
   | 'ANALYZING'
+  | 'EXTRACTION_REVIEW'
   | 'ASSESSMENT_READY'
   | 'HUMAN_REVIEW'
   | 'APPROVED'
@@ -186,6 +187,7 @@ export interface CaseModel {
   source_document_refs: SourceDocumentRef[];
   telemetry_ref?: TelemetryRef;
   extracted_custody_events?: Record<string, any>;
+  human_corrections?: Record<string, any>;
   normalized_timeline: Array<Record<string, any>>;
   assessment?: Record<string, any>;
   human_approvals: HumanApprovalEvent[];
