@@ -17,8 +17,8 @@
 
 ## 🌐 Live Demo & Services Health
 
-- **Live Application**: [https://subrogate-backend-zt4kq6xyiq-uc.a.run.app/](https://subrogate-backend-zt4kq6xyiq-uc.a.run.app/)
-- **System Health & API Check**: [https://subrogate-backend-zt4kq6xyiq-uc.a.run.app/api/health](https://subrogate-backend-zt4kq6xyiq-uc.a.run.app/api/health) *(Validates active connections to Vertex AI, Gemini 3.5, and Firestore)*
+- **Live Application (GitHub Pages)**: [https://malicodes2.github.io/SubroGate/](https://malicodes2.github.io/SubroGate/)
+- **System Health & API Check (Cloud Run)**: [https://subrogate-backend-zt4kq6xyiq-uc.a.run.app/api/health](https://subrogate-backend-zt4kq6xyiq-uc.a.run.app/api/health) *(Validates active connections to Vertex AI, Gemini 3.5, and Firestore)*
 
 ---
 
