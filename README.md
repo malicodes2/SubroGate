@@ -1,4 +1,4 @@
-# SubroGate 🛡️
+
 <p align="center">
   <img src="docs/logo_white_bg.png" alt="SubroGate Logo" width="600" />
 </p>
