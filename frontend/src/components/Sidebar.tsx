@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
-  Plus, 
   Search, 
   Clock, 
   CheckCircle2, 
@@ -11,6 +10,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { CaseModel } from '../types';
+import logoImg from '../assets/logo.png';
 
 interface SidebarProps {
   onNewInvestigation: () => void;
@@ -76,22 +76,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <div className="w-64 bg-slate-900 text-slate-300 flex flex-col h-screen border-r border-slate-800 shrink-0">
-      {/* Header & New Button */}
+      {/* Header */}
       <div className="p-4 border-b border-slate-800 bg-slate-900/50">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center text-white">
-            <Container className="w-4 h-4" />
-          </div>
+        <div className="flex items-center gap-3">
+          <img 
+            src={logoImg} 
+            alt="SubroGate Logo" 
+            className="h-8 object-contain select-none"
+          />
           <span className="font-heading font-bold text-lg text-white tracking-wide">SubroGate</span>
         </div>
-        
-        <button
-          onClick={onNewInvestigation}
-          className="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm shadow-blue-900/20"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Investigation</span>
-        </button>
       </div>
 
       {/* Search */}

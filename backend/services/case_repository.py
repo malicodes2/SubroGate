@@ -95,7 +95,6 @@ class FirestoreCaseRepository:
                     snap = doc_ref.get()
                     if snap.exists:
                         return CaseModel.model_validate(snap.to_dict())
-                    return None
                 except Exception as e:
                     logger.error(f"Firestore get failed: {e}. Checking memory fallback.")
 
@@ -110,6 +109,7 @@ class FirestoreCaseRepository:
         Lists recent cases, optionally filtered by status.
         """
         with trace_span("Firestore Case Listing", category="DATABASE", attributes={"limit": limit, "status": status.value if status else None}):
+            cases = []
             if self._firestore_client:
                 try:
                     col_ref = self._firestore_client.collection(self.COLLECTION_NAME)
@@ -118,14 +118,20 @@ class FirestoreCaseRepository:
                         query = query.where("status", "==", status.value)
                     query = query.order_by("updated_at_utc", direction="DESCENDING").limit(limit)
                     docs = query.stream()
-                    return [CaseModel.model_validate(doc.to_dict()) for doc in docs]
+                    cases = [CaseModel.model_validate(doc.to_dict()) for doc in docs]
                 except Exception as e:
                     logger.warning(f"Firestore list failed or unindexed: {e}. Falling back to memory scan.")
 
             with self._lock:
-                cases = [CaseModel.model_validate(d) for d in self._memory_store.values()]
+                mem_cases = [CaseModel.model_validate(d) for d in self._memory_store.values()]
                 if status:
-                    cases = [c for c in cases if c.status == status]
+                    mem_cases = [c for c in mem_cases if c.status == status]
+                # Merge lists, avoiding duplicates
+                seen = {c.case_id for c in cases}
+                for mc in mem_cases:
+                    if mc.case_id not in seen:
+                        cases.append(mc)
+                
                 cases.sort(key=lambda x: x.updated_at_utc or x.created_at_utc, reverse=True)
                 return cases[:limit]
 
@@ -166,8 +172,11 @@ class FirestoreCaseRepository:
                     doc_ref = self._firestore_client.collection(self.COLLECTION_NAME).document(case_id)
                     tx = self._firestore_client.transaction()
                     return _update_in_transaction(tx, doc_ref)
-                except (CaseNotFoundError, ConcurrencyConflictError):
+                except ConcurrencyConflictError:
                     raise
+                except CaseNotFoundError:
+                    # Let it fall back to memory
+                    pass
                 except Exception as e:
                     logger.error(f"Firestore transaction update failed: {e}. Falling back to memory update.")
 
