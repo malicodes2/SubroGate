@@ -82,7 +82,7 @@ def assess_dispute_json(payload: DisputeInvestigationRequest) -> DisputeInvestig
             ],
             peak_shock_g=max([b.peak_value for b in inv_response.normalized_telemetry.breaches if "SHOCK" in b.breach_type.value] + [0.0]) if inv_response.normalized_telemetry else 0.0,
             peak_temp_c=max([b.peak_value for b in inv_response.normalized_telemetry.breaches if "TEMP" in b.breach_type.value] + [0.0]) if inv_response.normalized_telemetry else 0.0,
-            breach_custodian=inv_response.assessment.potentially_liable_party.entity_name if inv_response.assessment and inv_response.assessment.potentially_liable_party else "N/A"
+            breach_custodian=inv_response.evidence_backed_assessment.potentially_responsible_party if inv_response.evidence_backed_assessment and inv_response.evidence_backed_assessment.potentially_responsible_party else "N/A"
         ),
         actor="USER",
         initial_status=CaseStatus.ANALYZING
@@ -199,7 +199,7 @@ async def assess_dispute_multipart(
             ],
             peak_shock_g=max([b.peak_value for b in inv_response.normalized_telemetry.breaches if "SHOCK" in b.breach_type.value] + [0.0]) if inv_response.normalized_telemetry else 0.0,
             peak_temp_c=max([b.peak_value for b in inv_response.normalized_telemetry.breaches if "TEMP" in b.breach_type.value] + [0.0]) if inv_response.normalized_telemetry else 0.0,
-            breach_custodian=inv_response.assessment.potentially_liable_party.entity_name if inv_response.assessment and inv_response.assessment.potentially_liable_party else "N/A"
+            breach_custodian=inv_response.evidence_backed_assessment.potentially_responsible_party if inv_response.evidence_backed_assessment and inv_response.evidence_backed_assessment.potentially_responsible_party else "N/A"
         ),
         actor="USER",
         initial_status=CaseStatus.ANALYZING
