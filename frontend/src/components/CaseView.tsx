@@ -57,9 +57,8 @@ export const CaseView: React.FC<CaseViewProps> = ({ onCaseUpdated }) => {
         fetched.status === 'RESOLVED'
       ) {
         setActiveStepTab(5);
-      } else if (fetched.status === 'ASSESSMENT_READY' || fetched.status === 'HUMAN_REVIEW') {
-        setActiveStepTab(4); // Or 3
       } else {
+        // Start at Evidence (Tab 1) sequentially for all other statuses
         setActiveStepTab(1);
       }
     } catch (err: any) {
@@ -87,11 +86,11 @@ export const CaseView: React.FC<CaseViewProps> = ({ onCaseUpdated }) => {
           setActiveCase(updated);
           if (onCaseUpdated) onCaseUpdated();
           
-          if (updated.status === 'ASSESSMENT_READY' || updated.status === 'HUMAN_REVIEW') {
-            setActiveStepTab(4);
-          } else if (updated.status === 'FAILED') {
+          if (updated.status === 'FAILED') {
             setError('Investigation flagged extraction issue.');
           }
+          // Intentionally do NOT jump to tab 4 automatically,
+          // so the user can read Tab 1 sequentially.
         }
       } catch (err) {
         console.error('Polling error:', err);
@@ -102,7 +101,6 @@ export const CaseView: React.FC<CaseViewProps> = ({ onCaseUpdated }) => {
   }, [activeCase?.case_id, activeCase?.status]);
 
 
-  // Handler: Human Adjuster Sign-Off
   const handleApproveCase = async (approval: HumanApprovalEvent) => {
     if (!activeCase) return;
     try {
@@ -113,6 +111,7 @@ export const CaseView: React.FC<CaseViewProps> = ({ onCaseUpdated }) => {
       if (onCaseUpdated) onCaseUpdated();
     } catch (err: any) {
       setError(`Approval error: ${err.message}`);
+      throw err;
     } finally {
       setActionLoading(null);
     }
@@ -128,6 +127,7 @@ export const CaseView: React.FC<CaseViewProps> = ({ onCaseUpdated }) => {
       if (onCaseUpdated) onCaseUpdated();
     } catch (err: any) {
       setError(`Retry failed: ${err.message}`);
+      throw err;
     } finally {
       setActionLoading(null);
     }
@@ -144,6 +144,7 @@ export const CaseView: React.FC<CaseViewProps> = ({ onCaseUpdated }) => {
       if (onCaseUpdated) onCaseUpdated();
     } catch (err: any) {
       setError(`Reanalysis error: ${err.message}`);
+      throw err;
     } finally {
       setActionLoading(null);
     }
