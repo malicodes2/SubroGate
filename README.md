@@ -2,7 +2,7 @@
 <p align="center">
   <img src="docs/logo_white_bg.png" alt="SubroGate Logo" width="600" />
 </p>
-### Agentic Incident Reconstruction for Cargo Disputes
+<h3 align="center">Agentic Incident Reconstruction for Cargo Disputes</h3>
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python: 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
