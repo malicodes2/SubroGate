@@ -14,8 +14,9 @@ All configuration parameters are centralized in `backend/config.py` using Pydant
 | `GEMINI_API_KEY` | *(None)* | Google AI Studio API Key (for local development). |
 | `GOOGLE_CLOUD_PROJECT` | *(None)* | GCP Project ID (for Vertex AI & Firestore on Cloud Run). |
 | `GOOGLE_CLOUD_LOCATION`| `us-central1` | GCP Region for Vertex AI. |
-| `SUBROGATE_USE_VERTEX` | `true` | Set `true` to route via Google Cloud Vertex AI (Google ADK). |
-| `CORS_ORIGINS` | `https://malicodes2.github.io,http://localhost:5173,http://localhost:8000` | Allowed CORS origins (comma-separated). |
+| `SUBROGATE_USE_VERTEX` | `true` | Set `true` to route via Google Cloud Vertex AI rather than AI Studio. |
+| `SUBROGATE_API_TOKEN` | *(None)* | Optional Bearer token for Zero-Trust Agent Identity & endpoint protection. |
+| `CORS_ORIGINS` | `https://malicodes2.github.io,http://localhost:5173,http://localhost:8080` | Allowed CORS origins (comma-separated). |
 
 ---
 

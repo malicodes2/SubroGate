@@ -50,18 +50,24 @@ class SubroGateSettings(BaseSettings):
         description="Set True to route through Vertex AI rather than AI Studio"
     )
     
-    # Security & CORS (Configurable for GitHub Pages & Custom Domains)
+    # Security & CORS (Strict Allow-list for Local Dev, Staging & Production)
     SUBROGATE_CORS_ORIGINS: List[str] = Field(
         default_factory=lambda: [
             origin.strip() for origin in os.getenv(
                 "CORS_ORIGINS",
                 os.getenv(
                     "SUBROGATE_CORS_ORIGINS",
-                    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8000,http://127.0.0.1:8000,https://malicodes2.github.io,*"
+                    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8000,http://127.0.0.1:8000,http://localhost:8080,http://127.0.0.1:8080,https://malicodes2.github.io,https://subrogate-backend-zt4kq6xyiq-uc.a.run.app"
                 )
             ).split(",") if origin.strip()
         ],
         description="Allowed CORS origins"
+    )
+    
+    # Agent Identity & Token-Based Protection
+    SUBROGATE_API_TOKEN: Optional[str] = Field(
+        default_factory=lambda: os.getenv("SUBROGATE_API_TOKEN", None),
+        description="Bearer token for Agent Identity & endpoint protection (Zero-Trust)"
     )
 
     model_config = SettingsConfigDict(

@@ -236,9 +236,9 @@ export const CaseView: React.FC<CaseViewProps> = ({ onCaseUpdated }) => {
           {[
             { step: 1, label: '1. Evidence', icon: Layers, count: 'EIR + Telemetry' },
             { step: 2, label: '2. Reconstruction', icon: Clock, count: 'Fused UTC' },
-            { step: 3, label: '3. Assessment', icon: Bot, count: '94% Confidence' },
-            { step: 4, label: '4. Human Review', icon: ShieldCheck, count: activeCase.status === 'APPROVED' ? 'Approved ✓' : 'Required' },
-            { step: 5, label: '5. Recovery', icon: Scale, count: 'Settlement Desk' }
+            { step: 3, label: '3. Assessment', icon: Bot, count: activeCase.assessment?.responsibility_confidence ? `${Math.round(activeCase.assessment.responsibility_confidence <= 1 ? activeCase.assessment.responsibility_confidence * 100 : activeCase.assessment.responsibility_confidence)}% Confidence` : 'Pending' },
+            { step: 4, label: '4. Human Review', icon: ShieldCheck, count: activeCase.status === 'APPROVED' || activeCase.status === 'RESOLVED' ? 'Approved ✓' : 'Required' },
+            { step: 5, label: '5. Recovery', icon: Scale, count: 'Demand Desk' }
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeStepTab === tab.step;
@@ -312,6 +312,11 @@ export const CaseView: React.FC<CaseViewProps> = ({ onCaseUpdated }) => {
           caseId={activeCase.case_id}
           caseStatus={activeCase.status}
           onRefreshCase={() => loadCase(activeCase.case_id)}
+          claimedLossUsd={activeCase.shipment_info?.claimed_loss_usd}
+          declaredValueUsd={activeCase.shipment_info?.declared_value_usd}
+          carrierName={activeCase.shipment_info?.carrier_name}
+          containerId={activeCase.shipment_info?.container_id}
+          commodity={activeCase.shipment_info?.commodity}
         />
       )}
 

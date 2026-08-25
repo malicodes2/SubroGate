@@ -24,3 +24,14 @@ def test_cors_headers_present(client):
     response = client.get("/health", headers={"Origin": "http://localhost:5173"})
     assert response.status_code == 200
     assert "access-control-allow-origin" in response.headers
+
+def test_agent_registry_endpoint(client):
+    response = client.get("/agents")
+    assert response.status_code == 200
+    catalog = response.json()
+    assert catalog["catalog_version"] == "2.0.0"
+    assert catalog["total_agents"] >= 3
+    agent_ids = [a["agent_id"] for a in catalog["agents"]]
+    assert "investigator-agent" in agent_ids
+    assert "settlement-agent" in agent_ids
+    assert "document-intelligence-agent" in agent_ids

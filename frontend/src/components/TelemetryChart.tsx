@@ -89,7 +89,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({ telemetryRef }) 
 
       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
         {/* KPI Strip */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="glass-inset p-3 border-slate-200 bg-slate-50/70">
             <span className="text-[10px] text-slate-700 uppercase font-bold">PEAK SHOCK FORCE</span>
             <div className="flex items-baseline gap-2 mt-0.5">

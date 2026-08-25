@@ -76,6 +76,7 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+*.docx
 
 # IDE / Customizations
 .gemini/

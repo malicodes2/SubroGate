@@ -31,8 +31,11 @@ export const CombinedEvidenceView: React.FC<CombinedEvidenceViewProps> = ({
   
   const formattedHandover = handoverDt ? handoverDt.toISOString().substring(11, 16) + ' UTC' : 'N/A';
   
-  // Mock breach for UI since telemetryRef doesn't have exact breach time
-  const formattedBreach = "17:15 UTC"; // Keeping this purely because telemetryRef doesn't have earliest_breach in its current model without timeline.
+  const formattedBreach = telemetryRef?.earliest_breach_timestamp_utc
+    ? new Date(telemetryRef.earliest_breach_timestamp_utc).toISOString().substring(11, 16) + ' UTC'
+    : (telemetryRef?.earliest_reading_utc
+      ? new Date(telemetryRef.earliest_reading_utc).toISOString().substring(11, 16) + ' UTC'
+      : 'In Transit Excursion');
   
   const extractionFailed = eirData?.extraction_status === 'FAILED' || eirData?.iso_check_digit_valid === false;
 

@@ -72,7 +72,7 @@ export const CaseHeader: React.FC<CaseHeaderProps> = ({
 
         {/* Right: Financial Exposure & Actions */}
         <div className="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <div className="glass-inset p-3 min-w-[120px] bg-slate-50 border-slate-200">
               <span className="text-[10px] text-slate-500 block uppercase font-semibold">DECLARED VALUE</span>
               <span className="text-sm font-bold text-slate-800 block mt-0.5">

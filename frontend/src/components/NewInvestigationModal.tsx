@@ -197,19 +197,19 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
-      <div className="glass-card w-full max-w-3xl overflow-hidden shadow-2xl border-slate-300 bg-white flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+      <div className="glass-card w-full max-w-3xl overflow-hidden shadow-2xl border-slate-300 bg-white flex flex-col max-h-[92vh]">
         {/* Modal Top Header (Light Mode) */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center shadow-xs">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center shadow-xs shrink-0">
               <Container className="w-4 h-4" />
             </div>
             <div>
               <h2 className="font-heading font-bold text-sm text-slate-900 flex items-center gap-2">
-                Initiate New Cargo Transit Investigation
+                Initiate Cargo Transit Investigation
               </h2>
-              <p className="text-[11px] text-slate-500 font-sans">
+              <p className="text-[11px] text-slate-500 font-sans hidden sm:block">
                 Multimodal custody extraction, timeline fusion, and evidence-backed assessment
               </p>
             </div>
@@ -225,7 +225,7 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
         </div>
 
         {/* Step Indicator Bar */}
-        <div className="grid grid-cols-4 border-b border-slate-200 bg-slate-100 text-[11px] font-mono select-none">
+        <div className="grid grid-cols-4 border-b border-slate-200 bg-slate-100 text-[10px] sm:text-[11px] font-mono select-none">
           {[
             { num: 1, label: 'Case Info' },
             { num: 2, label: 'Evidence Upload' },
@@ -257,7 +257,7 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-4">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
           {errorMsg && (
             <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-mono flex items-start gap-2.5 shadow-xs">
               <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />

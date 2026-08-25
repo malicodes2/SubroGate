@@ -17,8 +17,8 @@ graph TD
     GHPages -->|REST API with CORS| CloudRun["Backend: Google Cloud Run (FastAPI Container)"]
     
     subgraph Google Cloud Platform
-        CloudRun -->|Multimodal Document Intelligence| Gemini["Vertex AI: Gemini 2.0 / 2.5 Flash/Pro"]
-        CloudRun -->|Agent Orchestration| ADK["Google ADK (Investigator & Settlement Agents)"]
+        CloudRun -->|Multimodal Document Intelligence| Gemini["Vertex AI: Gemini 3.5 Flash/Pro"]
+        CloudRun -->|Agent Orchestration| SDK["Google GenAI SDK (Investigator & Settlement Agents)"]
         CloudRun -->|Persistent State & Audit Log| Firestore["Google Cloud Firestore (subrogate_cases)"]
         CloudRun -->|Operational Traces| CloudTrace["OpenTelemetry & Cloud Trace"]
     end
@@ -39,14 +39,14 @@ graph TD
 
 ---
 
-## 3. Google AI & ADK Integration
+## 3. Google AI & GenAI SDK Integration
 
 ### A. Gemini Model Strategy (`SUBROGATE_GEMINI_MODEL`)
 - **Centralized Configuration**: Configured exclusively via `SUBROGATE_GEMINI_MODEL` in [backend/config.py](file:///c:/Users/muham/Desktop/SubroGate/backend/config.py). Never scattered across codebase.
 - **Multimodal Document Intelligence**: Ingests Equipment Interchange Receipts (PDF/PNG/JPG), extracts ISO 6346 container numbers, validates Modulo-11 check digits, and parses gate timestamps.
 - **Evidence-Backed Responsibility Assessment**: Synthesizes verified outgate timestamps with continuous sensor telemetry time-series to determine legal liability under the Carmack Amendment (49 U.S.C. § 14706) and UIIA rules.
 
-### B. Google Agent Development Kit (ADK) & Agent Boundaries
+### B. Institutional Agent Fleet & Governance Boundaries
 1. **Document Intelligence Agent**:
    - *Role*: Multimodal OCR, container check digit calculation, damage remark extraction.
    - *Boundary*: Read-only perception; rejects illegible or forged receipts.

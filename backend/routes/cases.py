@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, Query, Body
+from fastapi import APIRouter, HTTPException, Query, Body, Depends
 from pydantic import BaseModel, Field
 
 from ..models.case import (
@@ -16,6 +16,7 @@ from ..models.case import (
 )
 from ..services.case_service import CaseService
 from ..services.case_repository import CaseNotFoundError, ConcurrencyConflictError
+from ..utils.auth import verify_agent_identity
 
 router = APIRouter(prefix="/api/cases", tags=["Case State & Management"])
 _case_service = CaseService()
@@ -57,7 +58,7 @@ class HumanApprovalRequest(BaseModel):
     expected_version: Optional[int] = None
 
 
-@router.post("", response_model=CaseModel, status_code=201)
+@router.post("", response_model=CaseModel, status_code=201, dependencies=[Depends(verify_agent_identity)])
 def create_case(payload: CreateCaseRequest) -> CaseModel:
     """
     Initializes a new persistent dispute case in Firestore.
@@ -94,7 +95,7 @@ def list_cases(
     return _case_service.list_cases(limit=limit, status=status)
 
 
-@router.patch("/{case_id}/status", response_model=CaseModel)
+@router.patch("/{case_id}/status", response_model=CaseModel, dependencies=[Depends(verify_agent_identity)])
 def transition_case_status(
     case_id: str,
     payload: StatusTransitionRequest
@@ -116,7 +117,7 @@ def transition_case_status(
         raise HTTPException(status_code=409, detail=str(e))
 
 
-@router.post("/{case_id}/audit-events", response_model=CaseModel)
+@router.post("/{case_id}/audit-events", response_model=CaseModel, dependencies=[Depends(verify_agent_identity)])
 def append_audit_event(
     case_id: str,
     payload: AppendAuditRequest
@@ -139,7 +140,7 @@ def append_audit_event(
         raise HTTPException(status_code=409, detail=str(e))
 
 
-@router.post("/{case_id}/negotiation", response_model=CaseModel)
+@router.post("/{case_id}/negotiation", response_model=CaseModel, dependencies=[Depends(verify_agent_identity)])
 def append_negotiation_message(
     case_id: str,
     payload: AppendNegotiationRequest
@@ -160,7 +161,7 @@ def append_negotiation_message(
         raise HTTPException(status_code=409, detail=str(e))
 
 
-@router.post("/{case_id}/approve", response_model=CaseModel)
+@router.post("/{case_id}/approve", response_model=CaseModel, dependencies=[Depends(verify_agent_identity)])
 def approve_case_liability(
     case_id: str,
     payload: HumanApprovalRequest
@@ -181,7 +182,7 @@ def approve_case_liability(
         raise HTTPException(status_code=409, detail=str(e))
 
 
-@router.post("/{case_id}/retry", response_model=CaseModel)
+@router.post("/{case_id}/retry", response_model=CaseModel, dependencies=[Depends(verify_agent_identity)])
 def retry_case_processing(
     case_id: str,
     actor: str = Body("ADJUSTER", embed=True)
@@ -200,7 +201,7 @@ def retry_case_processing(
         raise HTTPException(status_code=500, detail=f"Retry failed: {str(e)}")
 
 
-@router.post("/{case_id}/reanalyze", response_model=CaseModel)
+@router.post("/{case_id}/reanalyze", response_model=CaseModel, dependencies=[Depends(verify_agent_identity)])
 def reanalyze_case(
     case_id: str,
     corrections: Dict[str, Any] = Body(...)
@@ -236,22 +237,24 @@ def reanalyze_case(
             
             # Recalculate assessment based on new timeline
             if breach_dt and case.assessment:
+                shipper = getattr(case.shipment_info, "shipper_name", "Origin Shipper") if case.shipment_info else "Origin Shipper"
+                carrier = getattr(case.shipment_info, "carrier_name", "Apex Drayage Logistics LLC") if case.shipment_info else "Apex Drayage Logistics LLC"
                 if breach_dt < new_dt:
-                    case.assessment["potentially_responsible_party"] = case.shipment_info.shipper_name or "Origin Shipper"
+                    case.assessment["potentially_responsible_party"] = shipper or "Origin Shipper"
                     case.assessment["evidence_supporting_assessment"] = [
                         f"Human override established handover at {new_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}.",
                         f"Breach occurred at {breach_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}, which is BEFORE handover.",
                         "Custody resided with releasing party."
                     ]
                 else:
-                    case.assessment["potentially_responsible_party"] = case.shipment_info.carrier_name or "Apex Drayage Logistics LLC"
+                    case.assessment["potentially_responsible_party"] = carrier or "Apex Drayage Logistics LLC"
                     case.assessment["evidence_supporting_assessment"] = [
                         f"Human override established handover at {new_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}.",
                         f"Breach occurred at {breach_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}, which is AFTER handover.",
                         "Custody resided with receiving carrier."
                     ]
         except Exception as e:
-            print("Error parsing timestamp:", e)
+            logger.error(f"Error parsing timestamp in case reanalysis: {e}")
 
     updated_case = _case_service.repository.update(
         case_id=case.case_id,

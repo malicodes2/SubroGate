@@ -17,6 +17,7 @@ from .routes.investigation import router as investigation_router
 from .routes.cases import router as cases_router
 from .routes.settlement import router as settlement_router
 from .routes.observability import router as observability_router
+from .routes.agents import router as agents_router
 from .observability.tracer import trace_span
 
 settings = get_settings()
@@ -78,6 +79,7 @@ def create_app() -> FastAPI:
     app.include_router(cases_router)
     app.include_router(settlement_router)
     app.include_router(observability_router)
+    app.include_router(agents_router)
 
     # Mount Production Frontend (React SPA) if built dist directory is present
     dist_paths = [
@@ -88,16 +90,24 @@ def create_app() -> FastAPI:
     
     frontend_dist = next((p for p in dist_paths if p.exists() and (p / "index.html").exists()), None)
     if frontend_dist:
-        logger.info(f"Mounting production frontend build from: {frontend_dist}")
-        app.mount("/assets", StaticFiles(directory=str(frontend_dist / "assets")), name="assets")
+        root_dir = frontend_dist.resolve()
+        logger.info(f"Mounting production frontend build from: {root_dir}")
+        assets_dir = root_dir / "assets"
+        if assets_dir.exists():
+            app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
         
         @app.get("/{full_path:path}")
         async def serve_spa(full_path: str):
-            # If path matches a static file, return it, otherwise fallback to index.html for React SPA router
-            target_file = frontend_dist / full_path
-            if full_path and target_file.exists() and target_file.is_file():
-                return FileResponse(target_file)
-            return FileResponse(frontend_dist / "index.html")
+            # Strict path resolution and containment verification (SEC-01)
+            if full_path:
+                try:
+                    target_file = (root_dir / full_path).resolve()
+                    # Only serve if the file is strictly contained within root_dir
+                    if target_file.is_file() and (root_dir in target_file.parents or target_file == (root_dir / "index.html")):
+                        return FileResponse(target_file)
+                except Exception:
+                    pass
+            return FileResponse(root_dir / "index.html")
 
     return app
 

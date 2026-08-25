@@ -18,7 +18,7 @@ class AgentExecutionResult(BaseModel):
 
 class BaseForensicAgent:
     """
-    Google ADK & Vertex AI / GenAI compatible agent foundation.
+    Google GenAI SDK & Vertex AI compatible agent foundation.
     Encapsulates tool definitions, structured prompt execution,
     and deterministic fallback handling.
     """
@@ -135,4 +135,53 @@ class BaseForensicAgent:
                 return response.text
         except Exception as e:
             logger.error(f"Agent text execution error on '{self.agent_name}': {e}")
+            return None
+
+    def execute_with_adk_tools(
+        self,
+        prompt: str,
+        system_instruction: Optional[str] = None,
+        tools: Optional[List[Any]] = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Executes Google Agent Development Kit (ADK) tool-augmented generation.
+        Binds declarative function schemas to the Gemini model runtime.
+        """
+        if not self.is_online:
+            return None
+
+        try:
+            from google.genai import types
+            from .adk_tools import (
+                query_carmack_statutory_precedent,
+                verify_iso_6346_check_digit,
+                calculate_custody_breach_overlap
+            )
+
+            tool_list = tools or [
+                query_carmack_statutory_precedent,
+                verify_iso_6346_check_digit,
+                calculate_custody_breach_overlap
+            ]
+
+            config = types.GenerateContentConfig(
+                temperature=0.1,
+                tools=tool_list
+            )
+            if system_instruction:
+                config.system_instruction = system_instruction
+
+            response = self._client.models.generate_content(
+                model=self.model_name,
+                contents=[prompt],
+                config=config
+            )
+
+            if response and response.text:
+                try:
+                    return json.loads(response.text)
+                except Exception:
+                    return {"raw_response": response.text}
+        except Exception as e:
+            logger.error(f"ADK tool execution error on '{self.agent_name}': {e}")
             return None

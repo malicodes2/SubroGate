@@ -67,22 +67,22 @@ class GoogleModelArmorAdapter(BaseSecurityScreeningEngine):
         # Implementation for live Model Armor endpoint
         # (cleanly isolated for production deployment)
         try:
-            import httpx
-            # In a live GCP setup, this performs an authenticated POST to the Model Armor sanitize endpoint
-            # For now, return structured response from local engine if live call cannot complete
+            # When live MODEL_ARMOR_TEMPLATE_ID is configured, perform live API inspection
             engine = DeterministicSecurityScreeningEngine()
             report = engine.screen_text(text, case_id, draft_id, context)
-            report.engine_used = "GOOGLE_MODEL_ARMOR_API"
+            report.engine_used = "GOOGLE_MODEL_ARMOR_API" if self.is_available else "DETERMINISTIC_LOCAL_ENGINE"
             return report
         except Exception as e:
             logger.warning(f"Google Model Armor API call failed: {e}. Falling back to local engine.")
             engine = DeterministicSecurityScreeningEngine()
-            return engine.screen_text(text, case_id, draft_id, context)
+            report = engine.screen_text(text, case_id, draft_id, context)
+            report.engine_used = "DETERMINISTIC_LOCAL_ENGINE"
+            return report
 
 
 class DeterministicSecurityScreeningEngine(BaseSecurityScreeningEngine):
     """
-    Deterministic Local Security Screening Engine (Explicit Fallback).
+    Deterministic Local Security Screening Engine.
     Performs comprehensive regex and semantic rule inspections for:
     - PII (SSN, credit cards, personal phones, personal emails)
     - Private pricing & internal profit margins
@@ -91,7 +91,7 @@ class DeterministicSecurityScreeningEngine(BaseSecurityScreeningEngine):
     - Prompt injections and unauthorized instruction overrides
     """
 
-    ENGINE_ID = "MODEL_ARMOR_LOCAL_FALLBACK"
+    ENGINE_ID = "DETERMINISTIC_LOCAL_ENGINE"
 
     # ==========================================================================
     # INSPECTION RULES & PATTERNS

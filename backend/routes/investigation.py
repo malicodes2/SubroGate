@@ -1,7 +1,7 @@
 import json
 import base64
 from typing import Optional, Dict, Any, List
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Body, Query
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Body, Query, Depends
 from pydantic import BaseModel, Field
 
 from ..models.investigation import (
@@ -20,6 +20,7 @@ from ..services.telemetry_engine import DeterministicTelemetryEngine
 from ..services.timeline_engine import DeterministicTimelineFusionEngine
 from ..services.async_investigation_worker import AsyncInvestigationWorker, AsyncJobStatus
 from ..services.telemetry_simulator import TelemetryEventSimulator, SimulatedTelemetryEvent
+from ..utils.auth import verify_agent_identity
 
 router = APIRouter(prefix="/api/investigation", tags=["Forensic Investigation & Assessment"])
 _investigation_service = DisputeInvestigationService()
@@ -37,7 +38,7 @@ class AsyncSubmissionResponse(BaseModel):
     tracking_url: str = Field(..., description="URL to poll for updates")
 
 
-@router.post("/assess-dispute", response_model=DisputeInvestigationResponse)
+@router.post("/assess-dispute", response_model=DisputeInvestigationResponse, dependencies=[Depends(verify_agent_identity)])
 def assess_dispute_json(payload: DisputeInvestigationRequest) -> DisputeInvestigationResponse:
     """
     Main SubroGate Vertical Slice Endpoint.
@@ -96,7 +97,7 @@ def assess_dispute_json(payload: DisputeInvestigationRequest) -> DisputeInvestig
     return inv_response
 
 
-@router.post("/assess-multipart", response_model=DisputeInvestigationResponse)
+@router.post("/assess-multipart", response_model=DisputeInvestigationResponse, dependencies=[Depends(verify_agent_identity)])
 async def assess_dispute_multipart(
     telemetry_file: UploadFile = File(...),
     eir_file: Optional[UploadFile] = File(None),
@@ -244,7 +245,7 @@ def fuse_timeline_direct(payload: DisputeInvestigationRequest) -> dict:
 # GENUINE ASYNCHRONOUS & BACKGROUND PROCESSING ENDPOINTS
 # ==============================================================================
 
-@router.post("/submit-async", response_model=AsyncSubmissionResponse, status_code=202)
+@router.post("/submit-async", response_model=AsyncSubmissionResponse, status_code=202, dependencies=[Depends(verify_agent_identity)])
 def submit_investigation_async(
     payload: DisputeInvestigationRequest,
     custom_case_id: Optional[str] = Query(None, description="Optional custom case ID"),
@@ -276,7 +277,7 @@ def submit_investigation_async(
     )
 
 
-@router.post("/simulate-telemetry-event", response_model=AsyncSubmissionResponse, status_code=202)
+@router.post("/simulate-telemetry-event", response_model=AsyncSubmissionResponse, status_code=202, dependencies=[Depends(verify_agent_identity)])
 def simulate_telemetry_event(
     event_type: str = Query("SHOCK", description="SHOCK, TEMPERATURE, or CLEAN"),
     container_id: str = Query("MSKU9082345", description="Container unit number"),
@@ -323,7 +324,7 @@ def simulate_telemetry_event(
     )
 
 
-@router.post("/cases/{case_id}/retry", response_model=CaseModel)
+@router.post("/cases/{case_id}/retry", response_model=CaseModel, dependencies=[Depends(verify_agent_identity)])
 def retry_failed_investigation(
     case_id: str,
     actor: str = Body("ADJUSTER", embed=True)

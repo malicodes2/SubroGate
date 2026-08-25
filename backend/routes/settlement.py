@@ -1,5 +1,5 @@
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, HTTPException, Body, Query
+from fastapi import APIRouter, HTTPException, Body, Query, Depends
 from pydantic import BaseModel, Field
 
 from ..models.settlement import (
@@ -12,6 +12,7 @@ from ..models.settlement import (
 from ..models.case import CaseModel
 from ..services.settlement_service import SettlementService, DraftNotFoundError, InvalidDraftWorkflowError
 from ..services.carrier_simulator import CarrierSimulator
+from ..utils.auth import verify_agent_identity
 
 router = APIRouter(prefix="/api/settlement", tags=["Settlement Agent & Negotiation"])
 _settlement_service = SettlementService()
@@ -51,7 +52,7 @@ def generate_sample_carrier_objection(payload: GenerateObjectionRequest) -> Inbo
     )
 
 
-@router.post("/{case_id}/draft", response_model=OutboundDraft)
+@router.post("/{case_id}/draft", response_model=OutboundDraft, dependencies=[Depends(verify_agent_identity)])
 def generate_settlement_draft(
     case_id: str,
     payload: GenerateDraftRequest
@@ -79,7 +80,7 @@ def get_settlement_draft(draft_id: str) -> OutboundDraft:
     return draft
 
 
-@router.post("/drafts/{draft_id}/apply-sanitization", response_model=OutboundDraft)
+@router.post("/drafts/{draft_id}/apply-sanitization", response_model=OutboundDraft, dependencies=[Depends(verify_agent_identity)])
 def apply_draft_sanitization(draft_id: str) -> OutboundDraft:
     """
     Applies the suggested sanitized version to the draft, replacing flagged PII / pricing / margins.
@@ -90,7 +91,7 @@ def apply_draft_sanitization(draft_id: str) -> OutboundDraft:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/drafts/{draft_id}/review", response_model=OutboundDraft)
+@router.post("/drafts/{draft_id}/review", response_model=OutboundDraft, dependencies=[Depends(verify_agent_identity)])
 def submit_draft_for_review(draft_id: str) -> OutboundDraft:
     """
     Submits DRAFT for HUMAN_REVIEW.
@@ -101,7 +102,7 @@ def submit_draft_for_review(draft_id: str) -> OutboundDraft:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/drafts/{draft_id}/approve", response_model=OutboundDraft)
+@router.post("/drafts/{draft_id}/approve", response_model=OutboundDraft, dependencies=[Depends(verify_agent_identity)])
 def approve_draft_by_adjuster(
     draft_id: str,
     payload: ApproveDraftRequest
@@ -119,7 +120,7 @@ def approve_draft_by_adjuster(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/drafts/{draft_id}/security-check", response_model=OutboundDraft)
+@router.post("/drafts/{draft_id}/security-check", response_model=OutboundDraft, dependencies=[Depends(verify_agent_identity)])
 def run_draft_security_check(draft_id: str) -> OutboundDraft:
     """
     Stage 3 -> Stage 4 -> Stage 5: Executes automated PII and leak validation, advancing to READY_TO_SEND.
@@ -130,7 +131,7 @@ def run_draft_security_check(draft_id: str) -> OutboundDraft:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/{case_id}/drafts/{draft_id}/dispatch", response_model=CaseModel)
+@router.post("/{case_id}/drafts/{draft_id}/dispatch", response_model=CaseModel, dependencies=[Depends(verify_agent_identity)])
 def dispatch_draft_to_carrier(
     case_id: str,
     draft_id: str,
@@ -149,7 +150,7 @@ def dispatch_draft_to_carrier(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/{case_id}/simulate-three-turn", response_model=ThreeTurnNegotiationResult)
+@router.post("/{case_id}/simulate-three-turn", response_model=ThreeTurnNegotiationResult, dependencies=[Depends(verify_agent_identity)])
 def simulate_three_turn_negotiation(case_id: str) -> ThreeTurnNegotiationResult:
     """
     Executes a complete 3-turn interactive negotiation simulation with Firestore state tracking.

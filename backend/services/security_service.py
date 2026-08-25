@@ -35,7 +35,7 @@ class SecurityScreeningService:
         Executes security screening over an outbound draft.
         Saves an immutable audit trail in Firestore without exposing raw secrets.
         """
-        engine_name = getattr(self.engine, "ENGINE_ID", getattr(self.engine, "ENGINE_NAME", "MODEL_ARMOR_LOCAL_FALLBACK"))
+        engine_name = getattr(self.engine, "ENGINE_ID", getattr(self.engine, "ENGINE_NAME", "DETERMINISTIC_LOCAL_ENGINE"))
         with trace_span(
             name="Google Model Armor Security Screening",
             case_id=case_id,

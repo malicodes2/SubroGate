@@ -6,19 +6,22 @@ import {
   CheckCircle2, 
   AlertTriangle,
   Loader2,
-  Container
+  Layers,
+  FilePlus2,
+  FolderOpen
 } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { CaseModel } from '../types';
-import logoImg from '../assets/logo.png';
 
 interface SidebarProps {
   onNewInvestigation: () => void;
+  onNavigate?: () => void;
   refreshTrigger?: number; // Pass a counter to force refresh history
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ 
   onNewInvestigation, 
+  onNavigate,
   refreshTrigger = 0
 }) => {
   const [cases, setCases] = useState<CaseModel[]>([]);
@@ -75,34 +78,69 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div className="w-64 bg-white text-slate-700 flex flex-col h-full border-r border-slate-200 shrink-0">
-      {/* Search */}
-      <div className="p-4 border-b border-slate-200 bg-slate-50/50">
+    <div className="w-72 md:w-64 bg-white text-slate-700 flex flex-col h-full border-r border-slate-200 shrink-0 select-none">
+      {/* Search & Actions */}
+      <div className="p-3.5 border-b border-slate-200 bg-slate-50/70 space-y-2.5">
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
           <input
             type="text"
-            placeholder="Search cases..."
+            placeholder="Search container / cargo..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-md py-1.5 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-sm"
+            className="w-full bg-white border border-slate-200 rounded-lg py-1.5 pl-9 pr-3 text-xs text-slate-700 placeholder:text-slate-400 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-xs"
           />
+        </div>
+
+        {/* Quick Nav Links */}
+        <div className="grid grid-cols-2 gap-1.5 text-xs font-semibold">
+          <button
+            onClick={() => {
+              if (onNavigate) onNavigate();
+              onNewInvestigation();
+            }}
+            className="btn-primary py-1.5 px-2 text-[11px] flex items-center justify-center gap-1 shadow-xs"
+          >
+            <FilePlus2 className="w-3.5 h-3.5" />
+            <span>New Case</span>
+          </button>
+
+          <NavLink
+            to="/catalog"
+            onClick={() => {
+              if (onNavigate) onNavigate();
+            }}
+            className={({ isActive }) =>
+              `py-1.5 px-2 rounded-lg text-[11px] flex items-center justify-center gap-1 border transition-colors ${
+                isActive
+                  ? 'bg-blue-50 text-blue-700 border-blue-200 font-bold'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+              }`
+            }
+          >
+            <Layers className="w-3.5 h-3.5 text-blue-600" />
+            <span>Fleet (4)</span>
+          </NavLink>
         </div>
       </div>
 
       {/* Case List */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
-        <div className="px-2 pb-2 pt-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
-          Recent Cases
+        <div className="flex items-center justify-between px-1 pb-2 pt-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
+          <span className="flex items-center gap-1.5">
+            <FolderOpen className="w-3 h-3 text-slate-400" />
+            Active Case Workspace
+          </span>
+          <span>{filteredCases.length}</span>
         </div>
         
         {isLoading ? (
-          <div className="flex items-center justify-center p-4 text-slate-400">
+          <div className="flex items-center justify-center p-6 text-slate-400">
             <Loader2 className="w-5 h-5 animate-spin" />
           </div>
         ) : filteredCases.length === 0 ? (
-          <div className="px-3 py-4 text-xs text-slate-500 text-center italic">
-            {searchQuery ? 'No cases match your search.' : 'No previous cases found.'}
+          <div className="px-3 py-6 text-xs text-slate-500 text-center italic">
+            {searchQuery ? 'No cases match search.' : 'No previous cases found.'}
           </div>
         ) : (
           filteredCases.map((c) => {
@@ -110,39 +148,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <NavLink
                 key={c.case_id}
                 to={`/cases/${c.case_id}`}
+                onClick={() => {
+                  if (onNavigate) onNavigate();
+                }}
                 className={({ isActive: isNavLinkActive }) => `
-                  block p-3 rounded-lg border transition-all text-left w-full group mb-1.5
+                  block p-3 rounded-xl border transition-all text-left w-full group mb-1.5
                   ${isNavLinkActive 
-                    ? 'bg-blue-50 border-blue-200 shadow-sm' 
-                    : 'bg-white border-transparent text-slate-600 hover:bg-slate-50 hover:border-slate-200'
+                    ? 'bg-blue-50/80 border-blue-300 shadow-xs ring-1 ring-blue-400/20' 
+                    : 'bg-white border-slate-200/80 text-slate-600 hover:bg-slate-50 hover:border-slate-300 shadow-xs'
                   }
                 `}
               >
                 {({ isActive: isNavLinkActive }) => (
                   <>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className={`font-mono text-xs font-bold ${isNavLinkActive ? 'text-blue-700' : 'text-slate-700'}`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`font-mono text-xs font-bold ${isNavLinkActive ? 'text-blue-700' : 'text-slate-800'}`}>
                         {c.case_id.split('-').slice(0, 2).join('-')}
                         <span className="opacity-40">-{c.case_id.split('-').slice(2).join('-')}</span>
                       </span>
                       {getStatusIcon(c.status)}
                     </div>
                     
-                    <div className={`text-xs truncate font-medium mb-2 ${isNavLinkActive ? 'text-slate-800' : 'text-slate-600'}`}>
+                    <div className={`text-xs truncate font-medium mb-1.5 ${isNavLinkActive ? 'text-slate-900' : 'text-slate-600'}`}>
                       {c.shipment_info?.commodity || 'Unknown Cargo'}
                     </div>
                     
-                    <div className="flex items-center justify-between text-[10px]">
-                      <span className={`px-1.5 py-0.5 rounded font-mono font-medium ${
-                        c.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' :
-                        c.status === 'FAILED' ? 'bg-red-100 text-red-700' :
-                        c.status === 'ANALYZING' ? 'bg-blue-100 text-blue-700' :
+                    <div className="flex items-center justify-between text-[10px] font-mono">
+                      <span className={`px-1.5 py-0.5 rounded font-bold ${
+                        c.status === 'APPROVED' || c.status === 'RESOLVED' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' :
+                        c.status === 'FAILED' ? 'bg-red-50 text-red-700 border border-red-200' :
+                        c.status === 'ANALYZING' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
                         'bg-slate-100 text-slate-600'
                       }`}>
                         {getStatusDisplay(c.status)}
                       </span>
                       
-                      <span className="text-slate-400 font-medium">
+                      <span className="text-slate-400">
                         {new Date(c.updated_at_utc).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
                     </div>
@@ -152,12 +193,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             );
           })
         )}
-      </div>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-slate-200 bg-slate-50/50 text-[10px] text-center text-slate-400 font-mono">
-        SubroGate v2.0 <br/>
-        Persistent Case Workspace
       </div>
     </div>
   );

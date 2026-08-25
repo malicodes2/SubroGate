@@ -11,11 +11,15 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       proxy: {
         '/api': {
-          target: 'http://localhost:8000',
+          target: env.VITE_BACKEND_URL || 'http://localhost:8080',
           changeOrigin: true
         },
         '/health': {
-          target: 'http://localhost:8000',
+          target: env.VITE_BACKEND_URL || 'http://localhost:8080',
+          changeOrigin: true
+        },
+        '/agents': {
+          target: env.VITE_BACKEND_URL || 'http://localhost:8080',
           changeOrigin: true
         }
       }

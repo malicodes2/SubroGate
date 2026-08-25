@@ -12,7 +12,7 @@ WORKDIR /app/frontend
 
 # Install frontend dependencies
 COPY frontend/package.json frontend/package-lock.json* ./
-RUN npm install
+RUN npm ci
 
 # Build production bundle
 COPY frontend/ ./
@@ -67,4 +67,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://127.0.0.1:${PORT}/health || exit 1
 
 # Launch application with exec to guarantee SIGTERM graceful shutdown handling
-CMD ["sh", "-c", "exec uvicorn backend.main:app --host 0.0.0.0 --port ${PORT} --workers 2"]
+CMD ["sh", "-c", "exec uvicorn backend.main:app --host 0.0.0.0 --port ${PORT} --workers 1"]
