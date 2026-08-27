@@ -87,16 +87,6 @@ export const CaseHeader: React.FC<CaseHeaderProps> = ({
               </span>
             </div>
           </div>
-
-          {/* Action Buttons */}
-          <div className="w-full flex justify-end mt-2">
-            <button 
-              onClick={() => window.print()} 
-              className="text-xs px-3 py-1.5 bg-slate-800 text-white rounded hover:bg-slate-700 transition-colors shadow-sm font-semibold flex items-center gap-1.5"
-            >
-              Export Forensic PDF
-            </button>
-          </div>
         </div>
       </div>
     </div>

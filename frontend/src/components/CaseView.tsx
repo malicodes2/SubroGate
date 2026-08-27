@@ -224,118 +224,136 @@ export const CaseView: React.FC<CaseViewProps> = ({ onCaseUpdated }) => {
         </div>
       )}
 
-      {/* Minimalist Light Glass Case Header Ribbon */}
-      <CaseHeader
-        caseData={activeCase}
-        actionLoading={actionLoading}
-      />
+      {/* INTERACTIVE CASE WORKSPACE (Hidden during PDF print) */}
+      <div className="interactive-case-view space-y-6">
+        {/* Minimalist Light Glass Case Header Ribbon */}
+        <CaseHeader
+          caseData={activeCase}
+          actionLoading={actionLoading}
+        />
 
-      {/* 5-STAGE NAVIGATION PILLS (Light Mode) */}
-      <div className="glass-card p-1.5 border-slate-200 bg-white/90 shadow-sm">
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 text-xs">
-          {[
-            { step: 1, label: '1. Evidence', icon: Layers, count: 'EIR + Telemetry' },
-            { step: 2, label: '2. Reconstruction', icon: Clock, count: 'Fused UTC' },
-            { step: 3, label: '3. Assessment', icon: Bot, count: activeCase.assessment?.responsibility_confidence ? `${Math.round(activeCase.assessment.responsibility_confidence <= 1 ? activeCase.assessment.responsibility_confidence * 100 : activeCase.assessment.responsibility_confidence)}% Confidence` : 'Pending' },
-            { step: 4, label: '4. Human Review', icon: ShieldCheck, count: activeCase.status === 'APPROVED' || activeCase.status === 'RESOLVED' ? 'Approved ✓' : 'Required' },
-            { step: 5, label: '5. Recovery', icon: Scale, count: 'Demand Desk' }
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeStepTab === tab.step;
-            return (
-              <button
-                key={tab.step}
-                onClick={() => setActiveStepTab(tab.step)}
-                className={`py-2.5 px-3.5 rounded-lg flex items-center justify-between text-left transition-all ${
-                  isActive
-                    ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-md shadow-blue-500/20'
-                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 font-medium'
-                }`}
-              >
-                <div className="flex items-center gap-2 truncate">
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span className="truncate">{tab.label}</span>
-                </div>
-                <span className={`text-[10px] hidden lg:inline ${isActive ? 'text-blue-100' : 'text-slate-400'}`}>
-                  {tab.count}
-                </span>
-              </button>
-            );
-          })}
+        {/* 5-STAGE NAVIGATION PILLS (Light Mode) */}
+        <div className="glass-card p-1.5 border-slate-200 bg-white/90 shadow-sm">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 text-xs">
+            {[
+              { step: 1, label: '1. Evidence', icon: Layers, count: 'EIR + Telemetry' },
+              { step: 2, label: '2. Reconstruction', icon: Clock, count: 'Fused UTC' },
+              {
+                step: 3,
+                label: '3. Assessment',
+                icon: Bot,
+                count: (() => {
+                  const conf = activeCase.assessment?.confidence_score ?? activeCase.assessment?.responsibility_confidence ?? activeCase.assessment?.confidence ?? activeCase.assessment?.deterministic_overlap?.confidence;
+                  if (conf !== undefined && conf !== null) {
+                    const num = Number(conf);
+                    return `${Math.round(num <= 1 ? num * 100 : num)}% Confidence`;
+                  }
+                  if (['ASSESSMENT_READY', 'HUMAN_REVIEW', 'APPROVED', 'AWAITING_RESPONSE', 'NEGOTIATION', 'RESOLVED'].includes(activeCase.status)) {
+                    return 'Ready';
+                  }
+                  return 'Pending';
+                })()
+              },
+              { step: 4, label: '4. Human Review', icon: ShieldCheck, count: activeCase.status === 'APPROVED' || activeCase.status === 'RESOLVED' ? 'Approved ✓' : 'Required' },
+              { step: 5, label: '5. Recovery', icon: Scale, count: 'Demand Desk' }
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeStepTab === tab.step;
+              return (
+                <button
+                  key={tab.step}
+                  onClick={() => setActiveStepTab(tab.step)}
+                  className={`py-2.5 px-3.5 rounded-lg flex items-center justify-between text-left transition-all ${
+                    isActive
+                      ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold shadow-md shadow-blue-500/20'
+                      : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 font-medium'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="truncate">{tab.label}</span>
+                  </div>
+                  <span className={`text-[10px] hidden lg:inline ${isActive ? 'text-blue-100' : 'text-slate-400'}`}>
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
+
+        {/* TAB PANES */}
+
+        {/* TAB 1: Evidence Section (Combined / EIR / Telemetry) */}
+        {activeStepTab === 1 && (
+          <EvidenceSection
+            containerId={activeCase.shipment_info?.container_id}
+            eirData={activeCase.extracted_custody_events}
+            telemetryRef={activeCase.telemetry_ref}
+            onReanalyze={handleReanalyzeCase}
+          />
+        )}
+
+        {/* TAB 2: Reconstruction Timeline */}
+        {activeStepTab === 2 && (
+          <TimelineSection
+            timeline={activeCase.normalized_timeline as any || []}
+          />
+        )}
+
+        {/* TAB 3: Evidence-Backed Responsibility Assessment */}
+        {activeStepTab === 3 && (
+          <AssessmentSection
+            assessment={activeCase.assessment as any}
+          />
+        )}
+
+        {/* TAB 4: Human Adjuster Approval Gate */}
+        {activeStepTab === 4 && (
+          <HumanApprovalSection
+            caseId={activeCase.case_id}
+            caseStatus={activeCase.status}
+            humanApprovals={activeCase.human_approvals}
+            onApprove={handleApproveCase}
+            onRequestReanalysis={handleRetryCase}
+            onFlagManual={() => setError('Case escalated for manual adjuster forensic audit.')}
+          />
+        )}
+
+        {/* TAB 5: Settlement Agent & Negotiation Workbench */}
+        {activeStepTab === 5 && (
+          <SettlementSection
+            caseId={activeCase.case_id}
+            caseStatus={activeCase.status}
+            onRefreshCase={() => loadCase(activeCase.case_id)}
+            claimedLossUsd={activeCase.shipment_info?.claimed_loss_usd}
+            declaredValueUsd={activeCase.shipment_info?.declared_value_usd}
+            carrierName={activeCase.shipment_info?.carrier_name}
+            containerId={activeCase.shipment_info?.container_id}
+            commodity={activeCase.shipment_info?.commodity}
+          />
+        )}
+
+        {/* Subtle Footer for Technical Trace */}
+        <div className="flex justify-center pt-8 pb-4">
+          <button 
+            onClick={() => setIsTraceOpen(true)}
+            className="text-xs font-mono text-slate-400 hover:text-slate-600 flex items-center gap-2 transition-colors"
+          >
+            <Terminal className="w-3.5 h-3.5" />
+            <span>View System Trace Log</span>
+          </button>
+        </div>
+
+        <TechnicalTraceDrawer 
+          caseId={activeCase.case_id} 
+          isOpen={isTraceOpen}
+          onClose={() => setIsTraceOpen(false)}
+        />
       </div>
 
-      {/* HIDDEN PRINT TEMPLATE */}
+      {/* DEDICATED OFFICIAL PRINT TEMPLATE (Active only during print/PDF export) */}
       <ForensicReportTemplate caseData={activeCase} />
-
-      {/* TAB PANES */}
-
-      {/* TAB 1: Evidence Section (Combined / EIR / Telemetry) */}
-      {activeStepTab === 1 && (
-        <EvidenceSection
-          containerId={activeCase.shipment_info?.container_id}
-          eirData={activeCase.extracted_custody_events}
-          telemetryRef={activeCase.telemetry_ref}
-          onReanalyze={handleReanalyzeCase}
-        />
-      )}
-
-      {/* TAB 2: Reconstruction Timeline */}
-      {activeStepTab === 2 && (
-        <TimelineSection
-          timeline={activeCase.normalized_timeline as any || []}
-        />
-      )}
-
-      {/* TAB 3: Evidence-Backed Responsibility Assessment */}
-      {activeStepTab === 3 && (
-        <AssessmentSection
-          assessment={activeCase.assessment as any}
-        />
-      )}
-
-      {/* TAB 4: Human Adjuster Approval Gate */}
-      {activeStepTab === 4 && (
-        <HumanApprovalSection
-          caseId={activeCase.case_id}
-          caseStatus={activeCase.status}
-          humanApprovals={activeCase.human_approvals}
-          onApprove={handleApproveCase}
-          onRequestReanalysis={handleRetryCase}
-          onFlagManual={() => setError('Case escalated for manual adjuster forensic audit.')}
-        />
-      )}
-
-      {/* TAB 5: Settlement Agent & Negotiation Workbench */}
-      {activeStepTab === 5 && (
-        <SettlementSection
-          caseId={activeCase.case_id}
-          caseStatus={activeCase.status}
-          onRefreshCase={() => loadCase(activeCase.case_id)}
-          claimedLossUsd={activeCase.shipment_info?.claimed_loss_usd}
-          declaredValueUsd={activeCase.shipment_info?.declared_value_usd}
-          carrierName={activeCase.shipment_info?.carrier_name}
-          containerId={activeCase.shipment_info?.container_id}
-          commodity={activeCase.shipment_info?.commodity}
-        />
-      )}
-
-      {/* Subtle Footer for Technical Trace */}
-      <div className="flex justify-center pt-8 pb-4">
-        <button 
-          onClick={() => setIsTraceOpen(true)}
-          className="text-xs font-mono text-slate-400 hover:text-slate-600 flex items-center gap-2 transition-colors"
-        >
-          <Terminal className="w-3.5 h-3.5" />
-          <span>View System Trace Log</span>
-        </button>
-      </div>
-
-      <TechnicalTraceDrawer 
-        caseId={activeCase.case_id} 
-        isOpen={isTraceOpen}
-        onClose={() => setIsTraceOpen(false)}
-      />
     </div>
   );
 };

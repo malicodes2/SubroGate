@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Scale, 
   Lock, 
@@ -16,7 +16,8 @@ import {
   Shield,
   FileCheck2,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Printer
 } from 'lucide-react';
 import { CaseStatus, CarrierObjectionType } from '../types';
 import { apiClient } from '../api/client';
@@ -36,11 +37,11 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
   caseId,
   caseStatus,
   onRefreshCase,
-  claimedLossUsd = 75000,
-  declaredValueUsd = 100000,
-  carrierName = 'Apex Drayage Logistics LLC',
-  containerId = 'MSKU9082345',
-  commodity = 'Frozen Pharmaceutical Vaccines'
+  claimedLossUsd,
+  declaredValueUsd,
+  carrierName = 'Motor Carrier',
+  containerId = 'Container Unit',
+  commodity = 'Commercial Cargo'
 }) => {
   const isUnlocked = caseStatus === 'APPROVED' || caseStatus === 'AWAITING_RESPONSE' || caseStatus === 'NEGOTIATION' || caseStatus === 'RESOLVED';
 
@@ -62,8 +63,8 @@ export const SettlementSection: React.FC<SettlementSectionProps> = ({
   // Generated Demand Letter Text
   const defaultDemandLetter = useMemo(() => {
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    const formattedLoss = `$${Number(claimedLossUsd).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-    const formattedValue = `$${Number(declaredValueUsd).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    const formattedLoss = claimedLossUsd ? `$${Number(claimedLossUsd).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '$0.00';
+    const formattedValue = declaredValueUsd ? `$${Number(declaredValueUsd).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '$0.00';
 
     return `FORMAL NOTICE OF SUBROGATION DEMAND & INTENT TO RECOVER
 Date: ${today}
@@ -101,8 +102,8 @@ SubroGate Institutional Platform`;
       text: `REBUTTAL TO CARRIER DEFENSE (PRE-RECEIPT DAMAGE):
 
 1. The carrier's assertion that cargo was thawed/compromised prior to pickup is directly contradicted by the signed origin Equipment Interchange Receipt (EIR).
-2. The carrier's driver inspected and accepted the equipment with a clean condition notation and confirmed the reefer set-point at -20°C.
-3. Continuous NIST-calibrated time-series logs demonstrate cargo temperature remained within acceptable specification (-20°C to -18°C) until 2 hours and 15 minutes post-carrier gate departure.
+2. The carrier's driver inspected and accepted the equipment with a clean condition notation and confirmed the reefer set-point.
+3. Continuous NIST-calibrated time-series logs demonstrate cargo temperature remained within specification until post-carrier gate departure.
 4. Under 49 U.S.C. § 14706, the carrier cannot sustain an "inherent vice" defense without affirmative proof of pre-existing defect, which is legally barred by its own signed clean EIR.`
     },
     DISPUTES_CUSTODY: {
@@ -119,9 +120,9 @@ SubroGate Institutional Platform`;
       citation: 'Exhibit D-1 (NIST Sensor Calibration Certificate & SHA-256 Checksum)',
       text: `REBUTTAL TO CARRIER DEFENSE (SENSOR RELIABILITY):
 
-1. The data log was extracted from an active Sensitech/Roambee IoT cellular logger with valid NIST-traceable factory calibration.
+1. The data log was extracted from an active IoT cellular logger with valid NIST-traceable factory calibration.
 2. The raw CSV payload is timestamp-anchored with a verified SHA-256 cryptographic fingerprint.
-3. Dual-sensor cross-validation (reefer discharge air and ambient pulp temp) confirms identical thermal trajectory.`
+3. Dual-sensor cross-validation (discharge air and ambient pulp temp) confirms identical thermal trajectory.`
     },
     NOTICE_ALLEGEDLY_LATE: {
       title: 'Rebuttal to Defense: "Statutory Time Bar / Late Notice"',
@@ -143,13 +144,13 @@ Attached please find certified forensic exhibits:
 - Exhibit 4: Commercial Invoice & Certified Cargo Destruction Certificate`
     },
     PARTIAL_SETTLEMENT_OFFER: {
-      title: 'Compromise Assessment: "$45,000 USD Partial Settlement Offer"',
-      citation: 'Compromise Counter-Offer Protocol ($65,000 USD Authorization)',
-      text: `COUNTER-OFFER IN RESPONSE TO $45,000.00 USD COMPROMISE:
+      title: `Compromise Assessment: "${claimedLossUsd ? `$${Number(Math.round(claimedLossUsd * 0.6)).toLocaleString('en-US')}` : 'Partial'} USD Settlement Offer"`,
+      citation: `Compromise Counter-Offer Protocol (${claimedLossUsd ? `$${Number(Math.round(claimedLossUsd * 0.85)).toLocaleString('en-US')} USD` : '85%'} Authorization)`,
+      text: `COUNTER-OFFER IN RESPONSE TO SETTLEMENT COMPROMISE:
 
-We acknowledge your settlement proposal of $45,000.00 USD. However, in light of conclusive liability established by the signed origin EIR and uninterrupted telemetry custody chain:
-- Total substantiated loss: $75,000.00 USD
-- In the interest of immediate commercial resolution and avoiding formal arbitration/litigation, our adjuster is authorized to accept a final settlement of $65,000.00 USD.
+We acknowledge your settlement proposal. However, in light of conclusive liability established by the signed origin EIR and uninterrupted telemetry custody chain:
+- Total substantiated loss: ${claimedLossUsd ? `$${Number(claimedLossUsd).toLocaleString('en-US', { minimumFractionDigits: 2 })} USD` : 'Total Claim Amount'}
+- In the interest of immediate commercial resolution and avoiding formal arbitration/litigation, our adjuster is authorized to accept a final settlement of ${claimedLossUsd ? `$${Number(Math.round(claimedLossUsd * 0.85)).toLocaleString('en-US', { minimumFractionDigits: 2 })} USD` : '85% of substantiated loss'}.
 - This counter-offer remains valid for seven (7) business days.`
     },
     GENERAL_DENIAL: {
@@ -158,12 +159,24 @@ We acknowledge your settlement proposal of $45,000.00 USD. However, in light of 
       text: `NOTICE OF ESCALATION & ARBITRATION FILING INTENT:
 
 Your general denial fails to cite any of the five statutory Carmack exceptions (Act of God, Public Enemy, Act of Shipper, Public Authority, or Inherent Vice). 
-Unless substantive evidentiary defense is produced within 5 business days, this claim will be submitted directly to intermodal binding arbitration.`
+Under 49 U.S.C. § 14706, general denials without factual evidence shifting the burden of proof are legally insufficient. Failure to provide a factual response within seven (7) days will result in formal escalation to UIIA arbitration and collection proceedings.`
     }
   };
 
   const [demandText, setDemandText] = useState(defaultDemandLetter);
   const [rebuttalText, setRebuttalText] = useState(rebuttalBriefs[selectedObjection].text);
+
+  useEffect(() => {
+    if (!isEditingDemand) {
+      setDemandText(defaultDemandLetter);
+    }
+  }, [defaultDemandLetter, isEditingDemand]);
+
+  useEffect(() => {
+    if (!isEditingRebuttal) {
+      setRebuttalText(rebuttalBriefs[selectedObjection].text);
+    }
+  }, [selectedObjection, claimedLossUsd, carrierName, isEditingRebuttal]);
 
   // Update rebuttal text when objection changes
   const handleSelectObjection = (obj: CarrierObjectionType) => {
@@ -450,7 +463,7 @@ Unless substantive evidentiary defense is produced within 5 business days, this 
                   <strong className="font-bold text-slate-900">Remittance &amp; Release</strong>
                 </div>
                 <p className="text-slate-600 leading-relaxed text-[11px]">
-                  Upon settlement receipt (${claimedLossUsd.toLocaleString()} USD), execute standard release of liability and close subrogation file.
+                  Upon settlement receipt ({claimedLossUsd ? `$${Number(claimedLossUsd).toLocaleString()} USD` : 'substantiated recovery amount'}), execute standard release of liability and close subrogation file.
                 </p>
               </div>
             </div>
@@ -502,6 +515,27 @@ Unless substantive evidentiary defense is produced within 5 business days, this 
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Export Forensic Report */}
+          <div className="glass-card p-5 border-slate-200 bg-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h4 className="font-heading font-bold text-sm text-slate-900 flex items-center gap-2">
+                <Printer className="w-4 h-4 text-slate-600" />
+                Export Forensic Report
+              </h4>
+              <p className="text-[11px] text-slate-500 font-sans">
+                Download a print-ready PDF of the complete forensic investigation report, including evidence citations, custody timeline, and liability assessment.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="btn-primary text-xs py-2 px-4 flex items-center gap-2 font-bold shrink-0 shadow-sm"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              Export Forensic PDF
+            </button>
           </div>
         </>
       )}

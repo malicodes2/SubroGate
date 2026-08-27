@@ -75,7 +75,7 @@ class CarrierSimulator:
         cls,
         case_id: str,
         objection_type: CarrierObjectionType,
-        carrier_name: str = "Apex Drayage LLC",
+        carrier_name: str = "Motor Carrier",
         offered_amount_usd: Optional[float] = None
     ) -> InboundCarrierMessage:
         """
@@ -86,14 +86,34 @@ class CarrierSimulator:
             cls.SAMPLE_OBJECTIONS[CarrierObjectionType.DAMAGE_BEFORE_PICKUP]
         )
 
+        body_text = template["body"]
+
+        # Dynamically compute compromise amount if this is a partial settlement objection
+        if objection_type == CarrierObjectionType.PARTIAL_SETTLEMENT_OFFER:
+            if offered_amount_usd is None:
+                try:
+                    case = CaseService().get_case(case_id)
+                    if case and case.shipment_info and case.shipment_info.claimed_loss_usd:
+                        offered_amount_usd = round(float(case.shipment_info.claimed_loss_usd) * 0.60, 2)
+                    else:
+                        offered_amount_usd = 45000.0
+                except Exception:
+                    offered_amount_usd = 45000.0
+
+            body_text = (
+                "In review of the supporting EIR and telemetry records, and without admission of liability, "
+                f"our legal claims committee is authorized to offer a commercial compromise payment of ${offered_amount_usd:,.2f} USD "
+                "in full and final resolution of all claims regarding this shipment."
+            )
+
         return InboundCarrierMessage(
             message_id=f"IN-MSG-{uuid.uuid4().hex[:6].upper()}",
             case_id=case_id,
             sender_party=f"{carrier_name} Claims Dept",
-            sender_email=f"claims@{carrier_name.lower().replace(' ', '')}.com",
+            sender_email=f"claims@{carrier_name.lower().replace(' ', '').replace(',', '')}.com",
             subject=f"{template['subject']} (Ref: {case_id})",
-            body_text=template["body"],
-            offered_amount_usd=offered_amount_usd or (45000.0 if objection_type == CarrierObjectionType.PARTIAL_SETTLEMENT_OFFER else None),
+            body_text=body_text,
+            offered_amount_usd=offered_amount_usd if objection_type == CarrierObjectionType.PARTIAL_SETTLEMENT_OFFER else None,
             identified_objection=objection_type,
             received_at_utc=datetime.now(timezone.utc)
         )

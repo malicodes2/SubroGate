@@ -266,12 +266,21 @@ class SettlementService:
         turns: List[SimulationTurn] = []
         sim_id = f"SIM-{uuid.uuid4().hex[:6].upper()}"
 
+        # Dynamic case parameters
+        claimed_loss = float(case.shipment_info.claimed_loss_usd) if (case.shipment_info and case.shipment_info.claimed_loss_usd) else 75000.0
+        carrier_name = case.shipment_info.carrier_name if (case.shipment_info and case.shipment_info.carrier_name) else "Motor Carrier"
+        container_id = case.shipment_info.container_id if (case.shipment_info and case.shipment_info.container_id) else "Container"
+
+        offer_amount = round(claimed_loss * 0.60, 2)
+        counter_amount = round(claimed_loss * 0.85, 2)
+
         # ----------------------------------------------------------------------
         # TURN 1: Carrier says "Damage occurred before pickup"
         # ----------------------------------------------------------------------
         inbound_1 = CarrierSimulator.generate_inbound_message(
             case_id=case_id,
-            objection_type=CarrierObjectionType.DAMAGE_BEFORE_PICKUP
+            objection_type=CarrierObjectionType.DAMAGE_BEFORE_PICKUP,
+            carrier_name=carrier_name
         )
         draft_1 = self.generate_draft_response(case_id, inbound_1)
         self.approve_draft(draft_1.draft_id, "Senior Adjuster Sarah", "Approved with EIR clean stamp evidence.")
@@ -289,16 +298,17 @@ class SettlementService:
         )
 
         # ----------------------------------------------------------------------
-        # TURN 2: Carrier offers compromise payment ($45,000 USD)
+        # TURN 2: Carrier offers compromise payment (60% of claim)
         # ----------------------------------------------------------------------
         inbound_2 = CarrierSimulator.generate_inbound_message(
             case_id=case_id,
             objection_type=CarrierObjectionType.PARTIAL_SETTLEMENT_OFFER,
-            offered_amount_usd=45000.0
+            carrier_name=carrier_name,
+            offered_amount_usd=offer_amount
         )
         draft_2 = self.generate_draft_response(case_id, inbound_2)
-        draft_2.proposed_settlement_amount_usd = 65000.0  # Counter-offer
-        self.approve_draft(draft_2.draft_id, "Senior Adjuster Sarah", "Authorized $65,000 compromise counter-offer.")
+        draft_2.proposed_settlement_amount_usd = counter_amount  # Counter-offer
+        self.approve_draft(draft_2.draft_id, "Senior Adjuster Sarah", f"Authorized ${counter_amount:,.2f} compromise counter-offer.")
         self.run_security_check(draft_2.draft_id)
         self.dispatch_outbound_message(case_id, draft_2.draft_id)
 
@@ -308,23 +318,23 @@ class SettlementService:
                 inbound_carrier_message=inbound_2,
                 outbound_draft=draft_2,
                 status_at_turn_end=DraftApprovalStatus.READY_TO_SEND,
-                notes="Turn 2: Counter-offered $65,000.00 USD above floor."
+                notes=f"Turn 2: Counter-offered ${counter_amount:,.2f} USD above floor."
             )
         )
 
         # ----------------------------------------------------------------------
-        # TURN 3: Carrier accepts final settlement figure ($65,000 USD)
+        # TURN 3: Carrier accepts final settlement figure (85% of claim)
         # ----------------------------------------------------------------------
         inbound_3 = InboundCarrierMessage(
             message_id=f"IN-MSG-ACCEPT-{uuid.uuid4().hex[:4]}",
             case_id=case_id,
-            sender_party="Apex Drayage Legal Claims",
-            subject="RE: Final Settlement Agreement Authorization - $65,000.00 USD",
+            sender_party=f"{carrier_name} Legal Claims",
+            subject=f"RE: Final Settlement Agreement Authorization - ${counter_amount:,.2f} USD",
             body_text=(
-                "Our executive claims committee has agreed to your counter-offer of $65,000.00 USD in full and "
-                "final settlement of all claims regarding container MSKU9082345. Please send the final release."
+                f"Our executive claims committee has agreed to your counter-offer of ${counter_amount:,.2f} USD in full and "
+                f"final settlement of all claims regarding container {container_id}. Please send the final release."
             ),
-            offered_amount_usd=65000.0,
+            offered_amount_usd=counter_amount,
             identified_objection=CarrierObjectionType.PARTIAL_SETTLEMENT_OFFER
         )
         draft_3 = self.generate_draft_response(case_id, inbound_3)
@@ -337,7 +347,7 @@ class SettlementService:
             case_id=case_id,
             new_status=CaseStatus.RESOLVED,
             actor="SETTLEMENT_AGENT",
-            reason="Subrogation claim resolved with carrier agreement at $65,000.00 USD."
+            reason=f"Subrogation claim resolved with carrier agreement at ${counter_amount:,.2f} USD."
         )
 
         turns.append(
@@ -346,15 +356,15 @@ class SettlementService:
                 inbound_carrier_message=inbound_3,
                 outbound_draft=draft_3,
                 status_at_turn_end=DraftApprovalStatus.READY_TO_SEND,
-                notes="Turn 3: Settlement finalized at $65,000.00 USD. Case marked RESOLVED."
+                notes=f"Turn 3: Settlement finalized at ${counter_amount:,.2f} USD. Case marked RESOLVED."
             )
         )
 
         return ThreeTurnNegotiationResult(
             simulation_id=sim_id,
             case_id=case_id,
-            starting_demand_usd=75000.0,
-            final_settlement_usd=65000.0,
+            starting_demand_usd=claimed_loss,
+            final_settlement_usd=counter_amount,
             settlement_achieved=True,
             turns=turns
         )

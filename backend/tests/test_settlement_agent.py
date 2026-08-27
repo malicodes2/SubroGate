@@ -270,7 +270,7 @@ def test_three_turn_negotiation_simulation(case_service, settlement_service):
 
     assert result.settlement_achieved is True
     assert result.starting_demand_usd == 75000.0
-    assert result.final_settlement_usd == 65000.0
+    assert result.final_settlement_usd == round(75000.0 * 0.85, 2)
     assert len(result.turns) == 3
 
     # Check that case in Firestore was updated to RESOLVED with 3 negotiation rounds
@@ -341,5 +341,43 @@ def test_api_simulate_three_turn_endpoint(client):
     assert sim_res.status_code == 200
     sim_data = sim_res.json()
     assert sim_data["settlement_achieved"] is True
-    assert sim_data["final_settlement_usd"] == 65000.0
+    assert sim_data["final_settlement_usd"] == round(75000.0 * 0.85, 2)
     assert len(sim_data["turns"]) == 3
+
+
+def test_dynamic_custom_loss_and_carrier_negotiation(settlement_service, case_service):
+    """
+    Dynamic testing verification: Proves that settlement negotiation and simulation
+    are 100% dynamic without any hardcoded carrier or dollar figure assumptions.
+    """
+    case = case_service.create_case(
+        shipment_info=ShipmentInfo(
+            container_id="SWFT-991188",
+            commodity="Organic Berries",
+            declared_value_usd=50000.0,
+            claimed_loss_usd=40000.0,
+            carrier_name="Swift Freight Dynamics"
+        ),
+        custom_case_id="CASE-DYNAMIC-40K"
+    )
+
+    result = settlement_service.run_three_turn_simulation("CASE-DYNAMIC-40K")
+    assert result.settlement_achieved is True
+    # 85% of $40,000 = $34,000
+    assert result.final_settlement_usd == 34000.0
+    assert len(result.turns) == 3
+
+    turn1 = result.turns[0]
+    assert "Swift Freight Dynamics" in turn1.inbound_carrier_message.sender_party
+
+    turn2 = result.turns[1]
+    # 60% of $40,000 = $24,000
+    assert turn2.inbound_carrier_message.offered_amount_usd == 24000.0
+    assert "$24,000.00" in turn2.inbound_carrier_message.body_text
+    assert turn2.outbound_draft.proposed_settlement_amount_usd == 34000.0
+
+    turn3 = result.turns[2]
+    assert turn3.inbound_carrier_message.offered_amount_usd == 34000.0
+    assert "$34,000.00" in turn3.inbound_carrier_message.body_text
+    assert "SWFT-991188" in turn3.inbound_carrier_message.body_text
+

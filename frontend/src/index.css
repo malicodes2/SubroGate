@@ -270,3 +270,54 @@ input::placeholder, textarea::placeholder {
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
+
+/* ==========================================================================
+   PRINT STYLES: INSTITUTIONAL FORENSIC PDF EXPORT
+   ========================================================================== */
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 12mm 15mm 14mm 15mm;
+  }
+
+  /* Reset body and html for seamless print rendering */
+  html, body {
+    background: #FFFFFF !important;
+    background-image: none !important;
+    color: #0F172A !important;
+    font-size: 10pt !important;
+    line-height: 1.45 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Hide interactive web UI */
+  header,
+  aside,
+  nav,
+  button,
+  .print-hidden,
+  .interactive-case-view,
+  [role="dialog"] {
+    display: none !important;
+  }
+
+  /* Prevent page-break cutoffs across critical cards & tables */
+  .print-avoid-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-page-break-before {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+
+  /* High fidelity print colors */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
