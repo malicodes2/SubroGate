@@ -43,6 +43,8 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
   const [destinationFacility, setDestinationFacility] = useState('');
   const [carrierName, setCarrierName] = useState('');
   const [consigneeName, setConsigneeName] = useState('');
+  const [tempMaxLimit, setTempMaxLimit] = useState('');
+  const [shockLimit, setShockLimit] = useState('3.0');
 
   // Step 2: Evidence Files State (Clean Empty State)
   const [eirFile, setEirFile] = useState<File | null>(null);
@@ -178,6 +180,8 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
       formData.append('origin_facility', originFacility.trim());
       formData.append('destination_facility', destinationFacility.trim());
       formData.append('carrier_name', carrierName.trim());
+      if (tempMaxLimit) formData.append('temp_max_c', tempMaxLimit);
+      if (shockLimit) formData.append('shock_g_threshold', shockLimit);
 
       if (eirFile) {
         formData.append('eir_file', eirFile);
@@ -426,6 +430,35 @@ export const NewInvestigationModal: React.FC<NewInvestigationModalProps> = ({
                     onChange={(e) => setConsigneeName(e.target.value)}
                     placeholder="e.g. Midwest Cold Chain Medical Inc."
                     maxLength={50}
+                  />
+                </div>
+
+                {/* Calibrated Max Temperature Threshold */}
+                <div>
+                  <label className="text-slate-500 font-mono block text-[10px] mb-1 font-semibold">
+                    MAX TEMPERATURE LIMIT (°C) (OPTIONAL)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={tempMaxLimit}
+                    onChange={(e) => setTempMaxLimit(e.target.value)}
+                    placeholder="e.g. -18.0 (Frozen) or +4.0 (Fresh)"
+                  />
+                </div>
+
+                {/* Critical Shock Threshold */}
+                <div>
+                  <label className="text-slate-500 font-mono block text-[10px] mb-1 font-semibold">
+                    CRITICAL SHOCK THRESHOLD (G) (OPTIONAL)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="1.0"
+                    value={shockLimit}
+                    onChange={(e) => setShockLimit(e.target.value)}
+                    placeholder="e.g. 3.0"
                   />
                 </div>
               </div>

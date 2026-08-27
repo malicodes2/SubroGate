@@ -138,6 +138,14 @@ async def assess_dispute_multipart(
             eir_filename = eir_file.filename
             eir_mime = eir_file.content_type or "application/pdf"
 
+    # Auto-calibrate temperature threshold based on commodity if not explicitly provided
+    if temp_max_c is None:
+        comm_lower = (commodity or "").lower()
+        if any(w in comm_lower for w in ["frozen", "ice cream", "fish", "meat", "seafood", "sub-zero"]):
+            temp_max_c = -18.0
+        elif any(w in comm_lower for w in ["pharma", "vaccine", "biologic", "produce", "dairy", "fruit", "berries"]):
+            temp_max_c = 4.0
+
     thresholds = TelemetryThresholdConfig(
         temp_min_c=temp_min_c,
         temp_max_c=temp_max_c,
@@ -200,6 +208,8 @@ async def assess_dispute_multipart(
             ],
             peak_shock_g=max([b.peak_value for b in inv_response.normalized_telemetry.breaches if "SHOCK" in b.breach_type.value] + [0.0]) if inv_response.normalized_telemetry else 0.0,
             peak_temp_c=max([b.peak_value for b in inv_response.normalized_telemetry.breaches if "TEMP" in b.breach_type.value] + [0.0]) if inv_response.normalized_telemetry else 0.0,
+            temp_limit_c=temp_max_c,
+            shock_limit_g=shock_g_threshold or 3.0,
             breach_custodian=inv_response.evidence_backed_assessment.potentially_responsible_party if inv_response.evidence_backed_assessment and inv_response.evidence_backed_assessment.potentially_responsible_party else "N/A"
         ),
         actor="USER",

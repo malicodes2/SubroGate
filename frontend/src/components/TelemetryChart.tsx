@@ -12,16 +12,49 @@ interface TelemetryPoint {
 
 interface TelemetryChartProps {
   telemetryRef?: Record<string, any>;
+  shipmentInfo?: Record<string, any>;
 }
 
-export const TelemetryChart: React.FC<TelemetryChartProps> = ({ telemetryRef }) => {
+export const TelemetryChart: React.FC<TelemetryChartProps> = ({ telemetryRef, shipmentInfo }) => {
   const [activeMetric, setActiveMetric] = useState<'all' | 'temp' | 'shock'>('all');
   const [hoveredPoint, setHoveredPoint] = useState<TelemetryPoint | null>(null);
 
   const points: TelemetryPoint[] = telemetryRef?.points || [];
-  const maxShock = telemetryRef?.peak_shock_g || 'N/A';
-  const tempExcursion = telemetryRef?.peak_temp_c ? `+${telemetryRef.peak_temp_c}°C` : 'N/A';
-  const custodian = telemetryRef?.breach_custodian || 'N/A';
+
+  // Determine dynamic temperature threshold limit
+  const tempLimit = (() => {
+    if (telemetryRef?.temp_limit_c !== undefined && telemetryRef?.temp_limit_c !== null) {
+      return Number(telemetryRef.temp_limit_c);
+    }
+    const commLower = (shipmentInfo?.commodity || '').toLowerCase();
+    if (commLower.includes('frozen') || commLower.includes('ice cream') || commLower.includes('seafood') || commLower.includes('meat') || commLower.includes('sub-zero')) {
+      return -18.0;
+    }
+    // Check if points are deeply negative
+    const avgTemp = points.length > 0 ? points.reduce((acc, p) => acc + p.temp, 0) / points.length : 0;
+    if (avgTemp < -5) {
+      return -18.0;
+    }
+    return 4.0;
+  })();
+
+  const shockLimit = telemetryRef?.shock_limit_g ?? 3.0;
+
+  // Temperature excursion display
+  const hasTempBreach = Boolean(
+    telemetryRef?.has_temp_excursion || 
+    (telemetryRef?.peak_temp_c !== undefined && telemetryRef?.peak_temp_c !== null && telemetryRef.peak_temp_c !== 0)
+  );
+
+  const tempExcursion = hasTempBreach 
+    ? `${Number(telemetryRef?.peak_temp_c) > 0 ? '+' : ''}${Number(telemetryRef?.peak_temp_c).toFixed(1)}°C` 
+    : 'Within Spec';
+
+  const maxShock = telemetryRef?.peak_shock_g !== undefined && telemetryRef?.peak_shock_g !== null
+    ? `${Number(telemetryRef.peak_shock_g).toFixed(1)}G`
+    : (points.length > 0 ? `${Math.max(...points.map(p => p.shock)).toFixed(1)}G` : 'Normal');
+
+  const custodian = telemetryRef?.breach_custodian || shipmentInfo?.carrier_name || 'In Transit Carrier';
 
   // SVG Geometry Constants
   const SVG_WIDTH = 600;
@@ -31,9 +64,10 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({ telemetryRef }) 
   const DRAW_WIDTH = SVG_WIDTH - PADDING_X * 2;
   const DRAW_HEIGHT = SVG_HEIGHT - PADDING_Y * 2;
 
-  // Normalization logic to prevent distortion
-  // Shock limits: 0G to 5G
-  // Temp limits: -30C to +30C
+  // Dynamic range boundaries for temperature
+  const tempMinRange = tempLimit < 0 ? -30 : -20;
+  const tempMaxRange = tempLimit < 0 ? 10 : 30;
+
   const normalizeY = (val: number, min: number, max: number) => {
     const ratio = Math.max(0, Math.min(1, (val - min) / (max - min)));
     return SVG_HEIGHT - PADDING_Y - ratio * DRAW_HEIGHT;
@@ -44,7 +78,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({ telemetryRef }) 
     return PADDING_X + (index / (points.length - 1)) * DRAW_WIDTH;
   };
 
-  const tempPath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${normalizeY(p.temp, -30, 30)}`).join(' ');
+  const tempPath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${normalizeY(p.temp, tempMinRange, tempMaxRange)}`).join(' ');
   const shockPath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${normalizeY(p.shock, 0, 5)}`).join(' ');
 
   return (
@@ -93,24 +127,34 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({ telemetryRef }) 
           <div className="glass-inset p-3 border-slate-200 bg-slate-50/70">
             <span className="text-[10px] text-slate-700 uppercase font-bold">PEAK SHOCK FORCE</span>
             <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-lg font-extrabold text-slate-900 font-mono">{maxShock}G</span>
-              <span className="text-[10px] text-slate-600 font-semibold">(Limit: 3.0G)</span>
+              <span className="text-lg font-extrabold text-slate-900 font-mono">{maxShock}</span>
+              <span className="text-[10px] text-slate-600 font-semibold font-mono">
+                (Limit: {shockLimit.toFixed(1)}G)
+              </span>
             </div>
-            <span className="text-[11px] text-slate-500 block mt-0.5">Recorded Impact</span>
+            <span className="text-[11px] text-slate-500 block mt-0.5">
+              {Number(telemetryRef?.peak_shock_g) > shockLimit ? 'Exceeded Limit' : 'Recorded Impact'}
+            </span>
           </div>
 
           <div className="glass-inset p-3 border-slate-200 bg-slate-50/70">
             <span className="text-[10px] text-slate-700 uppercase font-bold">TEMPERATURE EXCURSION</span>
             <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-lg font-extrabold text-slate-900 font-mono">{tempExcursion}</span>
-              <span className="text-[10px] text-slate-600 font-semibold">(Limit: +4.0°C)</span>
+              <span className={`text-lg font-extrabold font-mono ${hasTempBreach ? 'text-red-700' : 'text-emerald-700'}`}>
+                {tempExcursion}
+              </span>
+              <span className="text-[10px] text-slate-600 font-semibold font-mono">
+                (Limit: {tempLimit > 0 ? `+${tempLimit.toFixed(1)}` : tempLimit.toFixed(1)}°C)
+              </span>
             </div>
-            <span className="text-[11px] text-slate-500 block mt-0.5">Thermal Threshold</span>
+            <span className="text-[11px] text-slate-500 block mt-0.5">
+              {hasTempBreach ? 'Thermal Setpoint Excursion' : 'No Excursion Recorded'}
+            </span>
           </div>
 
           <div className="glass-inset p-3 bg-slate-50 border-slate-200">
             <span className="text-[10px] text-slate-500 uppercase font-semibold">CUSTODIAN AT BREACH</span>
-            <span className="text-sm font-bold text-slate-900 block mt-0.5">{custodian}</span>
+            <span className="text-sm font-bold text-slate-900 block mt-0.5 truncate">{custodian}</span>
             <span className="text-[11px] text-slate-500 block mt-0.5">Post-interchange</span>
           </div>
         </div>
@@ -120,6 +164,9 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({ telemetryRef }) 
             <span className="flex items-center gap-1.5 text-slate-700 font-semibold">
               <Clock className="w-3.5 h-3.5 text-blue-600" />
               Time-Series Profile (UTC Synchronized)
+            </span>
+            <span className="text-[10px] font-mono text-slate-400">
+              Calibrated Threshold: {tempLimit > 0 ? `+${tempLimit.toFixed(1)}` : tempLimit.toFixed(1)}°C / {shockLimit.toFixed(1)}G
             </span>
           </div>
 
@@ -132,18 +179,24 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({ telemetryRef }) 
                 preserveAspectRatio="xMidYMid meet"
               >
                 {/* Horizontal Reference Lines */}
-                <line x1={PADDING_X} y1={normalizeY(30, -30, 30)} x2={SVG_WIDTH - PADDING_X} y2={normalizeY(30, -30, 30)} stroke="#E2E8F0" strokeDasharray="3 3" strokeWidth="1" />
-                <line x1={PADDING_X} y1={normalizeY(4, -30, 30)} x2={SVG_WIDTH - PADDING_X} y2={normalizeY(4, -30, 30)} stroke="#F59E0B" strokeDasharray="2 2" strokeWidth="1.2" />
-                <line x1={PADDING_X} y1={normalizeY(-20, -30, 30)} x2={SVG_WIDTH - PADDING_X} y2={normalizeY(-20, -30, 30)} stroke="#E2E8F0" strokeDasharray="3 3" strokeWidth="1" />
+                <line x1={PADDING_X} y1={normalizeY(tempMaxRange, tempMinRange, tempMaxRange)} x2={SVG_WIDTH - PADDING_X} y2={normalizeY(tempMaxRange, tempMinRange, tempMaxRange)} stroke="#E2E8F0" strokeDasharray="3 3" strokeWidth="1" />
+                <line x1={PADDING_X} y1={normalizeY(tempLimit, tempMinRange, tempMaxRange)} x2={SVG_WIDTH - PADDING_X} y2={normalizeY(tempLimit, tempMinRange, tempMaxRange)} stroke="#F59E0B" strokeDasharray="2 2" strokeWidth="1.2" />
+                <line x1={PADDING_X} y1={normalizeY(tempMinRange, tempMinRange, tempMaxRange)} x2={SVG_WIDTH - PADDING_X} y2={normalizeY(tempMinRange, tempMinRange, tempMaxRange)} stroke="#E2E8F0" strokeDasharray="3 3" strokeWidth="1" />
                 
                 {/* Y-Axis Labels (Temp) */}
-                <text x="35" y={normalizeY(30, -30, 30) + 4} fill="#64748B" fontSize="9" textAnchor="end" fontFamily="sans-serif">+30°C</text>
-                <text x="35" y={normalizeY(4, -30, 30) + 4} fill="#D97706" fontSize="9" textAnchor="end" fontFamily="sans-serif">+4°C</text>
-                <text x="35" y={normalizeY(-20, -30, 30) + 4} fill="#64748B" fontSize="9" textAnchor="end" fontFamily="sans-serif">-20°C</text>
+                <text x="35" y={normalizeY(tempMaxRange, tempMinRange, tempMaxRange) + 4} fill="#64748B" fontSize="9" textAnchor="end" fontFamily="sans-serif">
+                  {tempMaxRange > 0 ? `+${tempMaxRange}` : tempMaxRange}°C
+                </text>
+                <text x="35" y={normalizeY(tempLimit, tempMinRange, tempMaxRange) + 4} fill="#D97706" fontSize="9" textAnchor="end" fontFamily="sans-serif">
+                  {tempLimit > 0 ? `+${tempLimit}` : tempLimit}°C
+                </text>
+                <text x="35" y={normalizeY(tempMinRange, tempMinRange, tempMaxRange) + 4} fill="#64748B" fontSize="9" textAnchor="end" fontFamily="sans-serif">
+                  {tempMinRange}°C
+                </text>
 
                 {/* Temperature Curve */}
                 {(activeMetric === 'all' || activeMetric === 'temp') && (
-                  <path d={tempPath} fill="none" stroke="#DC2626" strokeWidth="2.5" />
+                  <path d={tempPath} fill="none" stroke="#2563EB" strokeWidth="2.5" />
                 )}
 
                 {/* Shock Curve */}
@@ -154,7 +207,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({ telemetryRef }) 
                 {/* Interactive Hover Nodes */}
                 {points.map((p, idx) => {
                   const cx = getX(idx);
-                  const cyTemp = normalizeY(p.temp, -30, 30);
+                  const cyTemp = normalizeY(p.temp, tempMinRange, tempMaxRange);
                   const cyShock = normalizeY(p.shock, 0, 5);
                   
                   return (
@@ -162,10 +215,10 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({ telemetryRef }) 
                       {/* Invisible hover target */}
                       <rect x={cx - 10} y={0} width={20} height={SVG_HEIGHT} fill="transparent" className="cursor-pointer" />
                       {(activeMetric === 'all' || activeMetric === 'temp') && (
-                        <circle cx={cx} cy={cyTemp} r={4.5} className="fill-blue-600 hover:fill-cyan-500 transition-colors pointer-events-none" />
+                        <circle cx={cx} cy={cyTemp} r={4} className="fill-blue-600 hover:fill-cyan-500 transition-colors pointer-events-none" />
                       )}
                       {(activeMetric === 'all' || activeMetric === 'shock') && (
-                        <circle cx={cx} cy={cyShock} r={4.5} className="fill-amber-600 hover:fill-amber-500 transition-colors pointer-events-none" />
+                        <circle cx={cx} cy={cyShock} r={4} className="fill-amber-600 hover:fill-amber-500 transition-colors pointer-events-none" />
                       )}
                     </g>
                   );
@@ -178,28 +231,16 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({ telemetryRef }) 
             )}
           </div>
 
-          {/* Time Axis Markers */}
-          <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-100">
-            <span>Origin</span>
-            <span className="text-blue-700 font-semibold">Gate Outgate</span>
-            <span className="text-slate-500 font-bold">Transit</span>
-            <span>Delivery</span>
-          </div>
-        </div>
-
-        {/* Hover Detail Strip */}
-        {hoveredPoint && (
-          <div className="glass-inset p-2.5 rounded text-xs flex flex-wrap items-center justify-between border-blue-200 bg-blue-50/50 animate-fade-in gap-2">
-            <span className="text-slate-700 font-medium whitespace-nowrap">
-              Time: <strong className="text-slate-900">{hoveredPoint.time}</strong>
-            </span>
-            <div className="flex items-center flex-wrap gap-3">
-              <span className="text-slate-700">Temp: <strong className={hoveredPoint.temp > 4 ? 'text-red-600' : 'text-emerald-600'}>{hoveredPoint.temp}°C</strong></span>
-              <span className="text-slate-700">Shock: <strong className={hoveredPoint.shock > 3 ? 'text-red-600' : 'text-slate-900'}>{hoveredPoint.shock}G</strong></span>
-              <span className="text-slate-700 truncate max-w-[150px] sm:max-w-xs" title={hoveredPoint.custody}>Holder: <strong className="text-blue-800">{hoveredPoint.custody}</strong></span>
+          {/* Hover Tooltip Footer */}
+          {hoveredPoint && (
+            <div className="text-[11px] font-mono text-slate-600 bg-slate-50 p-2 rounded border border-slate-200 flex items-center justify-between">
+              <span>Time: <strong>{hoveredPoint.time} UTC</strong></span>
+              <span>Temp: <strong>{hoveredPoint.temp > 0 ? `+${hoveredPoint.temp}` : hoveredPoint.temp}°C</strong></span>
+              <span>Shock: <strong>{hoveredPoint.shock}G</strong></span>
+              <span>Custody: <strong>{hoveredPoint.custody}</strong></span>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

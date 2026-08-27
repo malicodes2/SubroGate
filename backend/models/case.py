@@ -58,6 +58,8 @@ class TelemetryRef(BaseModel):
     ingestion_mode: Optional[str] = Field(None, description="How the telemetry was ingested")
     peak_shock_g: Optional[float] = Field(None, description="Max shock recorded")
     peak_temp_c: Optional[float] = Field(None, description="Max temp excursion")
+    temp_limit_c: Optional[float] = Field(None, description="Max acceptable temperature limit")
+    shock_limit_g: Optional[float] = Field(None, description="Max acceptable shock limit")
     breach_custodian: Optional[str] = Field(None, description="Custodian at time of breach")
     points: List[Dict[str, Any]] = Field(default_factory=list, description="Downsampled points for rendering")
 

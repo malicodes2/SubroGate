@@ -262,9 +262,21 @@ class DeterministicTimelineFusionEngine:
                 )
             )
 
+        # Helper to dynamically calculate confidence based on temporal distance from custody boundary
+        def _calc_boundary_confidence(delta: float) -> float:
+            if delta >= 60.0:
+                return 0.98
+            elif delta >= 30.0:
+                return round(0.90 + (delta - 30.0) / 30.0 * 0.08, 2)
+            elif delta >= 10.0:
+                return round(0.82 + (delta - 10.0) / 20.0 * 0.08, 2)
+            else:
+                return round(0.75 + max(0.0, delta) / 10.0 * 0.07, 2)
+
         # Compare earliest breach to EIR handover timestamp
         if earliest_breach_dt < handover_dt_utc:
             delta_mins = (handover_dt_utc - earliest_breach_dt).total_seconds() / 60.0
+            calculated_conf = _calc_boundary_confidence(delta_mins)
             win1 = next((w for w in windows if w.window_id == "WIN-001"), None)
             return DeterministicCustodyOverlap(
                 has_breach=True,
@@ -274,7 +286,7 @@ class DeterministicTimelineFusionEngine:
                 custody_window_id=win1.window_id if win1 else "WIN-001",
                 custody_window_start_utc=win1.start_time_utc if win1 else None,
                 custody_window_end_utc=handover_dt_utc,
-                overlap_confidence=0.98,
+                overlap_confidence=calculated_conf,
                 basis_reasoning=(
                     f"Earliest recorded {earliest_breach_obj.breach_type.value} occurred at {earliest_breach_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}, "
                     f"which is {delta_mins:.1f} minutes BEFORE carrier custody handover at {handover_dt_utc.strftime('%Y-%m-%d %H:%M:%S UTC')}. "
@@ -283,6 +295,7 @@ class DeterministicTimelineFusionEngine:
             )
         else:
             delta_mins = (earliest_breach_dt - handover_dt_utc).total_seconds() / 60.0
+            calculated_conf = _calc_boundary_confidence(delta_mins)
             win2 = next((w for w in windows if w.window_id == "WIN-002"), None)
             return DeterministicCustodyOverlap(
                 has_breach=True,
@@ -292,7 +305,7 @@ class DeterministicTimelineFusionEngine:
                 custody_window_id=win2.window_id if win2 else "WIN-002",
                 custody_window_start_utc=handover_dt_utc,
                 custody_window_end_utc=win2.end_time_utc if win2 else None,
-                overlap_confidence=0.98,
+                overlap_confidence=calculated_conf,
                 basis_reasoning=(
                     f"Earliest recorded {earliest_breach_obj.breach_type.value} occurred at {earliest_breach_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}, "
                     f"which is {delta_mins:.1f} minutes AFTER carrier custody handover at {handover_dt_utc.strftime('%Y-%m-%d %H:%M:%S UTC')}. "

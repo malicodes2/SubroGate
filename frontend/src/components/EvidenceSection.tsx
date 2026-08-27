@@ -8,6 +8,7 @@ interface EvidenceSectionProps {
   containerId?: string;
   eirData?: Record<string, any>;
   telemetryRef?: Record<string, any>;
+  shipmentInfo?: Record<string, any>;
   onReanalyze?: (corrections: Record<string, any>) => Promise<void>;
 }
 
@@ -15,6 +16,7 @@ export const EvidenceSection: React.FC<EvidenceSectionProps> = ({
   containerId = '',
   eirData,
   telemetryRef,
+  shipmentInfo,
   onReanalyze
 }) => {
   const [activeView, setActiveView] = useState<'combined' | 'document' | 'telemetry'>('combined');
@@ -83,19 +85,20 @@ export const EvidenceSection: React.FC<EvidenceSectionProps> = ({
           containerId={containerId}
           eirData={eirData}
           telemetryRef={telemetryRef}
+          shipmentInfo={shipmentInfo}
           onReanalyze={onReanalyze}
         />
       )}
 
       {activeView === 'document' && (
         <div className="h-[580px]">
-          <DocumentViewer containerId={containerId} eirData={eirData} onReanalyze={onReanalyze} />
+          <DocumentViewer containerId={containerId} eirData={eirData} shipmentInfo={shipmentInfo} onReanalyze={onReanalyze} />
         </div>
       )}
 
       {activeView === 'telemetry' && (
         <div className="h-[520px]">
-          <TelemetryChart telemetryRef={telemetryRef} />
+          <TelemetryChart telemetryRef={telemetryRef} shipmentInfo={shipmentInfo} />
         </div>
       )}
     </div>

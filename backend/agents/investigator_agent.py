@@ -370,12 +370,20 @@ class InvestigatorAgent(BaseForensicAgent):
                 "to establish carrier liability."
             )
 
+        calculated_conf = deterministic_overlap.overlap_confidence
+        if eir_validation and not eir_validation.is_timezone_explicit:
+            calculated_conf = max(0.40, round(calculated_conf - 0.05, 2))
+        if eir_validation and eir_validation.errors:
+            calculated_conf = max(0.40, round(calculated_conf - 0.08, 2))
+        if telemetry.data_quality.missing_intervals_count > 0:
+            calculated_conf = max(0.40, round(calculated_conf - 0.05, 2))
+
         return EvidenceBackedAssessment(
             shipment_id=case_metadata.shipment_id,
             assessment_timestamp_utc=datetime.now(timezone.utc),
             potentially_responsible_party=deterministic_overlap.culpable_party,
             potentially_responsible_role=deterministic_overlap.culpable_role,
-            confidence_score=deterministic_overlap.overlap_confidence,
+            confidence_score=calculated_conf,
             deterministic_overlap=deterministic_overlap,
             supporting_evidence=supporting,
             conflicting_evidence=conflicting,

@@ -290,6 +290,7 @@ export const CaseView: React.FC<CaseViewProps> = ({ onCaseUpdated }) => {
             containerId={activeCase.shipment_info?.container_id}
             eirData={activeCase.extracted_custody_events}
             telemetryRef={activeCase.telemetry_ref}
+            shipmentInfo={activeCase.shipment_info as any}
             onReanalyze={handleReanalyzeCase}
           />
         )}

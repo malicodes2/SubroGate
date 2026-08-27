@@ -7,6 +7,7 @@ interface CombinedEvidenceViewProps {
   containerId?: string;
   eirData?: Record<string, any>;
   telemetryRef?: Record<string, any>;
+  shipmentInfo?: Record<string, any>;
   onReanalyze?: (corrections: Record<string, any>) => Promise<void>;
 }
 
@@ -14,6 +15,7 @@ export const CombinedEvidenceView: React.FC<CombinedEvidenceViewProps> = ({
   containerId = 'N/A',
   eirData,
   telemetryRef,
+  shipmentInfo,
   onReanalyze
 }) => {
   const [manualHandover, setManualHandover] = useState(eirData?.raw_timestamp_str || '');
@@ -98,7 +100,7 @@ export const CombinedEvidenceView: React.FC<CombinedEvidenceViewProps> = ({
              </div>
           </div>
           <div className="flex-1 min-h-[400px]">
-            <DocumentViewer containerId={containerId} eirData={eirData} />
+            <DocumentViewer containerId={containerId} eirData={eirData} shipmentInfo={shipmentInfo} />
           </div>
         </div>
 
@@ -117,7 +119,7 @@ export const CombinedEvidenceView: React.FC<CombinedEvidenceViewProps> = ({
              </div>
           </div>
           <div className="flex-1 min-h-[400px]">
-            <TelemetryChart telemetryRef={telemetryRef} />
+            <TelemetryChart telemetryRef={telemetryRef} shipmentInfo={shipmentInfo} />
           </div>
         </div>
 
