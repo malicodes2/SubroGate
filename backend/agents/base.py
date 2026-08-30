@@ -66,6 +66,17 @@ class BaseForensicAgent:
     def is_online(self) -> bool:
         return self._client is not None
 
+    def _generate_with_fallback(self, contents: Any, config: Any) -> Any:
+        """
+        Executes Google GenAI SDK generate_content with the configured Gemini 3.5 model.
+        Uses the AI Studio API key for direct access to gemini-3.5-flash.
+        """
+        return self._client.models.generate_content(
+            model=self.model_name,
+            contents=contents,
+            config=config
+        )
+
     def execute_structured(
         self,
         prompt: str,
@@ -95,11 +106,7 @@ class BaseForensicAgent:
             if system_instruction:
                 config.system_instruction = system_instruction
 
-            response = self._client.models.generate_content(
-                model=self.model_name,
-                contents=contents,
-                config=config
-            )
+            response = self._generate_with_fallback(contents=contents, config=config)
 
             if response and response.text:
                 return json.loads(response.text)
@@ -125,11 +132,7 @@ class BaseForensicAgent:
             if system_instruction:
                 config.system_instruction = system_instruction
 
-            response = self._client.models.generate_content(
-                model=self.model_name,
-                contents=[prompt],
-                config=config
-            )
+            response = self._generate_with_fallback(contents=[prompt], config=config)
 
             if response and response.text:
                 return response.text
@@ -163,11 +166,7 @@ class BaseForensicAgent:
             if system_instruction:
                 config.system_instruction = system_instruction
 
-            response = self._client.models.generate_content(
-                model=self.model_name,
-                contents=[prompt],
-                config=config
-            )
+            response = self._generate_with_fallback(contents=[prompt], config=config)
 
             if response and response.text:
                 try:
