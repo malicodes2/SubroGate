@@ -9,7 +9,8 @@ from .adk_tools import (
     query_carmack_statutory_precedent,
     verify_iso_6346_check_digit,
     calculate_custody_breach_overlap,
-    ADK_TOOL_DECLARATIONS
+    ADK_TOOL_DECLARATIONS,
+    ADKToolRegistry
 )
 
 __all__ = [
@@ -22,5 +23,6 @@ __all__ = [
     "query_carmack_statutory_precedent",
     "verify_iso_6346_check_digit",
     "calculate_custody_breach_overlap",
-    "ADK_TOOL_DECLARATIONS"
+    "ADK_TOOL_DECLARATIONS",
+    "ADKToolRegistry"
 ]

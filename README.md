@@ -206,7 +206,7 @@ All unit tests and frontend builds run automatically on every push via `.github/
 ## 🧪 Testing & Verification
 
 ```bash
-# Run 118 automated unit, security, ADK & integration tests
+# Run 120 automated unit, security, ADK & integration tests
 python -m pytest backend/tests -v
 
 # Run frontend typecheck & production build

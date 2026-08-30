@@ -1,9 +1,10 @@
 """
-SubroGate Google Agent Development Kit (ADK) Tools Library.
-Declarative agent tools and schemas for Google GenAI / Vertex AI Agent orchestration.
+SubroGate Google Agent Development Kit (ADK) & Vertex AI Agent Tools Library.
+Declarative agent tools, schemas, and runners for Google GenAI / Vertex AI Agent orchestration.
 """
 import re
-from typing import Dict, Any, List, Optional
+import json
+from typing import Dict, Any, List, Optional, Callable
 from pydantic import BaseModel, Field
 
 # ==============================================================================
@@ -124,7 +125,7 @@ def calculate_custody_breach_overlap(
     Google ADK Tool: Deterministically calculates whether the physical sensor breach
     occurred prior to origin handover (shipper liability) or post-interchange (carrier liability).
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     try:
         handover_dt = datetime.fromisoformat(handover_timestamp_utc.replace("Z", "+00:00"))
@@ -156,7 +157,7 @@ def calculate_custody_breach_overlap(
 
 
 # ==============================================================================
-# ADK DECLARATIVE TOOL SCHEMA EXPORT
+# ADK DECLARATIVE TOOL SCHEMA EXPORT & REGISTRY
 # ==============================================================================
 
 ADK_TOOL_DECLARATIONS = [
@@ -202,3 +203,36 @@ ADK_TOOL_DECLARATIONS = [
         }
     }
 ]
+
+
+class ADKToolRegistry:
+    """
+    Formal Google Agent Development Kit (ADK) Tool Registry.
+    Binds declarative function schemas to runtime Python callables for Gemini models.
+    """
+    _TOOL_MAP: Dict[str, Callable] = {
+        "query_carmack_statutory_precedent": query_carmack_statutory_precedent,
+        "verify_iso_6346_check_digit": verify_iso_6346_check_digit,
+        "calculate_custody_breach_overlap": calculate_custody_breach_overlap,
+    }
+
+    @classmethod
+    def get_registered_callables(cls) -> List[Callable]:
+        """Returns all callable tools for direct binding to google.genai or Vertex AI."""
+        return list(cls._TOOL_MAP.values())
+
+    @classmethod
+    def get_declarations(cls) -> List[Dict[str, Any]]:
+        """Returns JSON schema declarations for Google GenAI tool manifests."""
+        return ADK_TOOL_DECLARATIONS
+
+    @classmethod
+    def execute_tool(cls, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Executes a registered tool by name with provided arguments."""
+        if tool_name not in cls._TOOL_MAP:
+            return {"error": f"Tool '{tool_name}' is not registered in ADK Tool Registry."}
+        try:
+            func = cls._TOOL_MAP[tool_name]
+            return func(**arguments)
+        except Exception as e:
+            return {"error": f"Tool execution error on '{tool_name}': {str(e)}"}

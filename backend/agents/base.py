@@ -152,17 +152,9 @@ class BaseForensicAgent:
 
         try:
             from google.genai import types
-            from .adk_tools import (
-                query_carmack_statutory_precedent,
-                verify_iso_6346_check_digit,
-                calculate_custody_breach_overlap
-            )
+            from .adk_tools import ADKToolRegistry
 
-            tool_list = tools or [
-                query_carmack_statutory_precedent,
-                verify_iso_6346_check_digit,
-                calculate_custody_breach_overlap
-            ]
+            tool_list = tools or ADKToolRegistry.get_registered_callables()
 
             config = types.GenerateContentConfig(
                 temperature=0.1,

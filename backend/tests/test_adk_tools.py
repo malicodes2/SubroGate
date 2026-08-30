@@ -42,3 +42,21 @@ def test_adk_tool_declarations_schema():
     assert "query_carmack_statutory_precedent" in tool_names
     assert "verify_iso_6346_check_digit" in tool_names
     assert "calculate_custody_breach_overlap" in tool_names
+
+def test_adk_tool_registry_execution():
+    from backend.agents.adk_tools import ADKToolRegistry
+
+    callables = ADKToolRegistry.get_registered_callables()
+    assert len(callables) == 3
+
+    # Test direct registry execution
+    res = ADKToolRegistry.execute_tool(
+        "query_carmack_statutory_precedent",
+        {"doctrine_type": "STRICT_LIABILITY"}
+    )
+    assert "statute" in res
+    assert "49 U.S.C. § 14706" in res["statute"]
+
+    # Test unknown tool handling
+    err_res = ADKToolRegistry.execute_tool("unknown_tool", {})
+    assert "error" in err_res
