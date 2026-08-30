@@ -4,6 +4,10 @@ Start the SubroGate FastAPI Backend
 """
 import sys
 import os
+
+# Ensure repository root is on sys.path when script is executed directly
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import uvicorn
 from backend.config import get_settings
 
