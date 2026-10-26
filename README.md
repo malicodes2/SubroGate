@@ -61,7 +61,7 @@ flowchart LR
 1. **Evidence Ingestion**: Upload scanned EIRs (PDF/PNG/JPG) and calibrated IoT sensor CSV data.
 2. **Reconstruction**: Reconstructs a synchronized chronological custody interval timeline.
 3. **Assessment**: The Investigator Agent produces an evidence-backed assessment identifying the responsible carrier with statutory citations.
-4. **Human Review**: The claims adjuster verifies the evidence, adjusts liability allocation ($0-100\%$), enters notes, and signs the cryptographic approval token (`SIG-AUTH-*`).
+4. **Human Review**: The claims adjuster verifies the evidence, adjusts liability allocation ($0-100\%$), enters notes, and signs the approval badge identifier (`SIG-AUTH-*`).
 5. **Recovery**: The Subrogation Recovery Desk provides copy-ready formal demand notices, pre-drafted carrier rebuttal briefs, and an interactive multi-turn negotiation simulator.
 
 ---
@@ -79,7 +79,7 @@ flowchart TD
         C["Deterministic Timeline Fusion Engine<br>(UTC Synchronization & Temporal Overlap)"]
         D["Document Intelligence Agent<br>(Multimodal OCR & ISO 6346 Modulo-11 Checksum)"]
         E["Investigator Agent (Google GenAI SDK)<br>(Statutory Burden of Proof & Evidence Synthesis)"]
-        F["Human Adjuster Sign-Off Gate<br>(Cryptographic Approval Audit Token)"]
+        F["Human Adjuster Sign-Off Gate<br>(Approval Badge Identifier)"]
         G["Settlement Agent (Google GenAI SDK)<br>(Grounded Rebuttal Formulation & Compromise Desk)"]
         H["Security Screening & DLP Gate<br>(PII, Secret, Margin & Safety Screening)"]
         REG["Agent Registry & Fleet Catalog<br>(GET /agents Manifest Endpoint)"]

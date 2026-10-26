@@ -54,7 +54,7 @@ graph TD
    - *Role*: Fuses temporal custody windows with shock/temperature breach timestamps. Calculates overlap confidence and articulates statutory burden of proof.
    - *Boundary*: Proposes forensic assessment; cannot execute legal demand without human sign-off.
 3. **Human Adjuster Sign-Off Gate**:
-   - *Role*: Enforces mandatory human-in-the-loop review. Claims adjuster verifies evidence, sets liability percentage ($0-100\%$), enters adjuster notes, and generates an immutable cryptographic signature token (`SIG-AUTH-*`).
+   - *Role*: Enforces mandatory human-in-the-loop review. Claims adjuster verifies evidence, sets liability percentage ($0-100\%$), enters adjuster notes, and generates an approval badge identifier (`SIG-AUTH-*`).
 4. **Settlement & Negotiation Agent**:
    - *Role*: Unlocks strictly after human approval. Formulates citation-backed rebuttals to carrier pushback, screened in real-time by Google Model Armor safety checks.
 

@@ -71,7 +71,7 @@ class HumanApprovalEvent(BaseModel):
     approved_at_utc: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="Timestamp of approval")
     allocated_liability_pct: float = Field(default=100.0, ge=0.0, le=100.0, description="Approved liability allocation %")
     notes: Optional[str] = Field(None, description="Adjuster assessment notes or rationale")
-    audit_badge_token: str = Field(..., description="Cryptographic or hash token proving human sign-off")
+    audit_badge_token: str = Field(..., description="Approval badge identifier proving human sign-off")
 
 
 class SettlementState(BaseModel):
